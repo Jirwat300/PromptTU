@@ -221,20 +221,15 @@ function Home() {
             </button>
           </div>
           <div className="cards-grid">
-            {activityCards.map((card, index) => (
-              <article key={card} className="blue-card">
-                {index === 0 && (
-                  <button type="button" className="card-nav card-nav--left">
-                    ←
-                  </button>
-                )}
-                {index === activityCards.length - 1 && (
-                  <button type="button" className="card-nav card-nav--right">
-                    →
-                  </button>
-                )}
-              </article>
+            <button type="button" className="card-nav card-nav--left" aria-label="Previous">
+              ←
+            </button>
+            {activityCards.map((card) => (
+              <article key={card} className="blue-card" />
             ))}
+            <button type="button" className="card-nav card-nav--right" aria-label="Next">
+              →
+            </button>
           </div>
         </div>
       </section>
@@ -248,20 +243,15 @@ function Home() {
             </button>
           </div>
           <div className="cards-grid">
-            {todayCards.map((card, index) => (
-              <article key={card} className="blue-card">
-                {index === 0 && (
-                  <button type="button" className="card-nav card-nav--left">
-                    ←
-                  </button>
-                )}
-                {index === todayCards.length - 1 && (
-                  <button type="button" className="card-nav card-nav--right">
-                    →
-                  </button>
-                )}
-              </article>
+            <button type="button" className="card-nav card-nav--left" aria-label="Previous">
+              ←
+            </button>
+            {todayCards.map((card) => (
+              <article key={card} className="blue-card" />
             ))}
+            <button type="button" className="card-nav card-nav--right" aria-label="Next">
+              →
+            </button>
           </div>
         </div>
       </section>

@@ -561,6 +561,7 @@ img {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.9rem;
+  position: relative;
 }
 
 .blue-card {
@@ -575,20 +576,22 @@ img {
   top: 50%;
   transform: translateY(-50%);
   border: 0;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.6rem;
+  height: 2.6rem;
   border-radius: 50%;
-  background: #ecf0fb;
-  color: #1b3f8c;
+  background: #ffffff;
+  color: #0b2a8a;
   font-size: 1.4rem;
+  box-shadow: 0 6px 20px rgba(6, 18, 70, 0.18);
+  z-index: 5;
 }
 
 .card-nav--left {
-  left: 1rem;
+  left: -1.3rem;
 }
 
 .card-nav--right {
-  right: 1rem;
+  right: -1.3rem;
 }
 
 .blue-card--membership {
@@ -638,9 +641,9 @@ img {
   width: var(--content-width);
   margin: 0 auto 0.9rem;
   padding: 0.8rem 0.9rem;
-  border: 1px solid rgba(43, 96, 233, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 999px;
-  color: #0d4fdd;
+  color: #f4f7ff;
   text-align: center;
   font-size: 0.95rem;
   font-weight: 700;
@@ -683,7 +686,7 @@ img {
 
 @media (min-width: 721px) {
   :root {
-    --content-width: min(46rem, calc(100% - 2rem));
+    --content-width: min(80rem, calc(100% - 4rem));
   }
 
   .hero-shell {
@@ -699,32 +702,41 @@ img {
   }
 
   .navbar {
-    padding: 1rem max(0.75rem, env(safe-area-inset-right, 0px)) 0 max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-top: max(1rem, env(safe-area-inset-top, 0px));
+    padding: 1.4rem max(1.25rem, env(safe-area-inset-right, 0px)) 0 max(1.25rem, env(safe-area-inset-left, 0px));
+    padding-top: max(1.4rem, env(safe-area-inset-top, 0px));
   }
 
   .navbar-inner {
-    width: min(42rem, calc(100% - 2rem));
+    width: min(80rem, calc(100% - 4rem));
     grid-template-columns: 2.5rem minmax(0, 1fr);
-    gap: 0.9rem;
-    padding: 0.35rem 0.55rem;
-    border-radius: 0.6rem;
+    gap: 1.2rem;
+    padding: 0.35rem 0.55rem 0.35rem 0;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
   }
 
   .brand-logo {
-    width: 30px;
+    width: 36px;
   }
 
   .nav-links {
-    gap: 0.95rem;
+    gap: 2.25rem;
     justify-content: flex-end;
     overflow: visible;
     padding-bottom: 0;
   }
 
   .nav-links a {
-    font-size: 0.64rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #eaf0ff;
     padding: 0;
+  }
+
+  .nav-links a:hover {
+    color: #c8d8ff;
   }
 
   .vote-button {
@@ -1053,8 +1065,8 @@ img {
   }
 
   .footer-display {
-    bottom: -1.3rem;
-    font-size: clamp(5.6rem, 17vw, 9.6rem);
+    bottom: -1.8rem;
+    font-size: clamp(8rem, 17vw, 12rem);
   }
 
   .hero-visual.hero-visual--hover-dao .dao-photo {
