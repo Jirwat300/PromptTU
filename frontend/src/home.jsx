@@ -10,12 +10,28 @@ const navItems = [
   { label: 'ติดต่อเรา', href: '#contact' },
 ]
 
-const countdown = [
-  { value: '1', label: 'วัน' },
-  { value: '2', label: 'ชั่วโมง' },
-  { value: '3', label: 'นาที', active: true },
-  { value: '23', label: 'วินาที' },
-]
+/**
+ * วันเลือกตั้งธรรมศาสตร์ — 28 เมษายน 08:00 น.
+ * ถ้าปีปัจจุบันเลยวันที่ 28 เม.ย. ไปแล้ว ให้นับไปปีถัดไปโดยอัตโนมัติ
+ */
+const ELECTION_DATE = (() => {
+  const now = new Date()
+  const thisYear = new Date(now.getFullYear(), 3, 28, 8, 0, 0) // month 3 = April
+  return now > thisYear
+    ? new Date(now.getFullYear() + 1, 3, 28, 8, 0, 0)
+    : thisYear
+})()
+
+function getTimeLeft(target = ELECTION_DATE) {
+  const diff = Math.max(0, target.getTime() - Date.now())
+  return {
+    d: Math.floor(diff / 86_400_000),
+    h: Math.floor((diff / 3_600_000) % 24),
+    m: Math.floor((diff / 60_000) % 60),
+    s: Math.floor((diff / 1_000) % 60),
+    done: diff === 0,
+  }
+}
 
 const activityCards = [1, 2, 3]
 const todayCards = [1, 2, 3]
@@ -29,6 +45,24 @@ function Home() {
   const [scrollY, setScrollY] = useState(0)
   /** 'dao' | 'diw' | null — ควบคุมโฟกัสทีละคนบนเดสก์ท็อป (เลเยอร์ hit แยกซ้าย/ขวา) */
   const [candidateHover, setCandidateHover] = useState(null)
+  const [timeLeft, setTimeLeft] = useState(getTimeLeft)
+
+  // อัปเดตทุกวินาที (หน้าเว็บ tab ทำงานเมื่อมองเห็น — ไม่มี tick เพิ่มโหลด)
+  useEffect(() => {
+    setTimeLeft(getTimeLeft())
+    const id = setInterval(() => setTimeLeft(getTimeLeft()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const countdownItems = useMemo(
+    () => [
+      { value: timeLeft.d, label: 'วัน' },
+      { value: timeLeft.h, label: 'ชั่วโมง' },
+      { value: timeLeft.m, label: 'นาที', active: true },
+      { value: timeLeft.s, label: 'วินาที' },
+    ],
+    [timeLeft],
+  )
 
   useEffect(() => {
     const handleScroll = () => {
@@ -171,13 +205,15 @@ function Home() {
           <h2 className="section-title">นับถอยหลังเลือกตั้งธรรมศาสตร์</h2>
           <div className="countdown-board">
             <p className="countdown-board-title">นับถอยหลังเลือกตั้งธรรมศาสตร์</p>
-            <div className="countdown-grid">
-              {countdown.map((item) => (
+            <div className="countdown-grid" role="timer" aria-live="polite">
+              {countdownItems.map((item) => (
                 <article
                   key={item.label}
                   className={`countdown-card${item.active ? ' countdown-card--active' : ''}`}
                 >
-                  <p className="countdown-value">{item.value}</p>
+                  <p className="countdown-value">
+                    {String(item.value).padStart(item.label === 'วินาที' ? 2 : 1, '0')}
+                  </p>
                   <p className="countdown-label">{item.label}</p>
                 </article>
               ))}
