@@ -199,7 +199,7 @@ img {
 
 .hero-visual {
   --candidate-photo-height: clamp(18rem, 65vw, 24rem);
-  --candidate-photo-side: clamp(-1rem, 0vw, 1rem);
+  --candidate-photo-side: clamp(-3rem, -4vw, -1rem);
   --candidate-photo-bottom: clamp(-3rem, -5vw, -1rem);
 
   position: relative;
@@ -217,7 +217,7 @@ img {
 .hero-heading {
   position: absolute;
   left: 50%;
-  top: clamp(10%, 12vh, 15%);
+  top: clamp(6%, 8vh, 12%);
   transform: translate(-50%, 0);
   z-index: 30;
   width: min(40rem, 94%);
