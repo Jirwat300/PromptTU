@@ -70,6 +70,10 @@ body.poptu-active #root {
   --lcd-bezel: #ffffff;
   /* Room for fixed taskbar + home indicator / safe area */
   --poptu-bottom-pad: calc(56px + env(safe-area-inset-bottom, 0px));
+  /* One scale for ranking row copy, faculty name, and related UI (overridden per breakpoint) */
+  --poptu-row-text: 16px;
+  --poptu-row-line: 1.25;
+  --poptu-floater: calc(var(--poptu-row-text) * 1.625);
 
   flex: 1 1 auto;
   width: 100%;
@@ -128,6 +132,7 @@ body.poptu-active #root {
   font-weight: 700;
   font-style: normal;
   font-synthesis: weight;
+  font-size: var(--poptu-floater);
 }
 
 /* ----- the main Win95 window ----- */
@@ -221,7 +226,8 @@ body.poptu-active #root {
 
 /* ----- body inside main window ----- */
 /* White "paper" area inside the chrome, matching the Figma mock.
- * Layout priority: lizard stage > rankings ≈ faculty (LCD/credit stay compact). */
+ * Typography: --poptu-row-text on .poptu keeps rankings, faculty row, and legend in one scale;
+ * --poptu-floater scales the +1 mascot pop. Layout: lizard stage vs rankings vs faculty tuned per breakpoint. */
 .poptu-body {
   padding: 10px;
   display: flex;
@@ -248,7 +254,7 @@ body.poptu-active #root {
   flex-shrink: 0;
 }
 .rankings-window .win-title {
-  font-size: 15px;
+  font-size: var(--poptu-row-text);
 }
 .rankings-body {
   padding: 10px;
@@ -279,7 +285,8 @@ body.poptu-active #root {
   border: 2px dashed var(--title-blue);
 }
 .ranking-faculty {
-  font-size: 16px;
+  font-size: var(--poptu-row-text);
+  line-height: var(--poptu-row-line);
   color: #000;
   white-space: nowrap;
   overflow: hidden;
@@ -287,14 +294,15 @@ body.poptu-active #root {
 }
 .ranking-score {
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: 16px;
+  font-size: var(--poptu-row-text);
+  line-height: var(--poptu-row-line);
   color: var(--title-blue);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .poptu .rankings-window .ranking-faculty[lang="th"] {
-  font-size: 29px;
-  line-height: 1.25;
+  font-size: var(--poptu-row-text);
+  line-height: var(--poptu-row-line);
 }
 
 /* ----- LCD counter ----- */
@@ -460,7 +468,6 @@ body.poptu-active #root {
   top: 10%;
   transform: translateX(-50%);
   color: var(--title-blue);
-  font-size: 26px;
   text-shadow: 2px 2px 0 #fff, 0 0 6px rgba(43,91,255,0.35);
   pointer-events: none;
   animation: floater-up 700ms ease-out forwards;
@@ -505,10 +512,18 @@ body.poptu-active #root {
 }
 .faculty-name {
   flex: 1;
-  font-size: 14px;
+  font-size: var(--poptu-row-text);
+  line-height: var(--poptu-row-line);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.poptu .fieldset .faculty-name[lang="th"] {
+  font-size: var(--poptu-row-text);
+  line-height: var(--poptu-row-line);
+}
+.poptu .fieldset > legend {
+  font-size: max(11px, calc(var(--poptu-row-text) - 1px));
 }
 
 /* ----- Win95 buttons ----- */
@@ -540,6 +555,10 @@ body.poptu-active #root {
 .w95-btn:focus-visible {
   outline: 1px dotted #000;
   outline-offset: -4px;
+}
+.poptu .fieldset .w95-btn[lang="th"] {
+  font-size: var(--poptu-row-text);
+  line-height: var(--poptu-row-line);
 }
 
 /* ----- credit (above Faculty row, inside white body) ----- */
@@ -677,6 +696,9 @@ body.poptu-active #root {
   .poptu {
     /* Extra room so Faculty + legend stay above fixed taskbar (icons ~52px + labels + safe area) */
     --poptu-bottom-pad: calc(100px + env(safe-area-inset-bottom, 0px));
+    --poptu-row-text: clamp(12px, 3.6vw, 14px);
+    --poptu-row-line: 1.15;
+    --poptu-floater: calc(var(--poptu-row-text) * 1.7);
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
   }
@@ -707,9 +729,6 @@ body.poptu-active #root {
   .rankings-window .win-titlebar {
     padding: 1px 3px 1px 4px;
   }
-  .rankings-window .win-title {
-    font-size: 11px;
-  }
   .rankings-window .win-btn {
     width: 16px;
     height: 14px;
@@ -727,18 +746,8 @@ body.poptu-active #root {
   .ranking-num {
     width: 20px;
     height: 20px;
-    font-size: 12px;
+    font-size: max(10px, calc(var(--poptu-row-text) * 0.92));
     border-width: 1px;
-  }
-  .ranking-faculty,
-  .ranking-score {
-    font-size: 11px;
-    line-height: 1.12;
-  }
-  /* Global 29px Thai is too tall on phone — cap for one-screen layout (desktop keeps 29px). */
-  .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: clamp(11px, 3.4vw, 14px);
-    line-height: 1.12;
   }
   /* LCD digits slightly smaller on mobile but still prominent */
   .lcd-wrap {
@@ -768,7 +777,6 @@ body.poptu-active #root {
       inset -1px -1px 0 var(--win-shadow);
   }
   .fieldset > legend {
-    font-size: 12px;
     top: -8px;
     left: 10px;
     padding: 0 5px;
@@ -783,14 +791,6 @@ body.poptu-active #root {
     height: 22px;
     font-size: 18px;
   }
-  .faculty-name {
-    font-size: 13px;
-  }
-  /* Thai faculty: absolute px floor — % of parent was too small / inconsistent on phones */
-  .poptu .fieldset .faculty-name[lang="th"] {
-    font-size: clamp(15px, 4.8vw, 19px);
-    line-height: 1.22;
-  }
   .poptu-modal-root .poptu-faculty-blurb[lang="th"] {
     font-size: 215%;
     line-height: 1.3;
@@ -801,8 +801,8 @@ body.poptu-active #root {
   }
   .w95-btn {
     padding: 3px 10px;
-    font-size: 12px;
     min-width: 64px;
+    font-size: var(--poptu-row-text);
   }
 
   .poptu .poptu-credit {
@@ -833,6 +833,9 @@ body.poptu-active #root {
 @media (max-height: 950px) and (max-width: 520px) {
   .poptu {
     --poptu-bottom-pad: calc(102px + env(safe-area-inset-bottom, 0px));
+    --poptu-row-text: clamp(11px, 3.25vw, 13px);
+    --poptu-row-line: 1.12;
+    --poptu-floater: calc(var(--poptu-row-text) * 1.65);
   }
   .poptu .lcd--caught .lcd-caught-msg {
     font-size: clamp(0.85rem, 3.8vw, 1.15rem);
@@ -846,9 +849,6 @@ body.poptu-active #root {
   .rankings-window .win-titlebar {
     padding: 1px 2px;
   }
-  .rankings-window .win-title {
-    font-size: 11px;
-  }
   .rankings-body {
     padding: 3px 4px 4px;
     gap: 2px;
@@ -860,16 +860,7 @@ body.poptu-active #root {
   .ranking-num {
     width: 18px;
     height: 18px;
-    font-size: 11px;
-  }
-  .ranking-faculty,
-  .ranking-score {
-    font-size: 10px;
-    line-height: 1.1;
-  }
-  .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: clamp(10px, 3.1vw, 13px);
-    line-height: 1.1;
+    font-size: max(9px, calc(var(--poptu-row-text) * 0.88));
   }
   .lcd-wrap {
     padding: 3px 2px 1px;
@@ -900,6 +891,9 @@ body.poptu-active #root {
   .poptu {
     padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(16px, env(safe-area-inset-left, 0px));
+    --poptu-row-text: 17px;
+    --poptu-row-line: 1.25;
+    --poptu-floater: calc(var(--poptu-row-text) * 1.65);
   }
 
   .poptu-window {
@@ -931,14 +925,6 @@ body.poptu-active #root {
     padding: 6px 12px;
     gap: 12px;
   }
-  .ranking-faculty,
-  .ranking-score {
-    font-size: 17px;
-  }
-  .rankings-window .win-title {
-    font-size: 15px;
-  }
-
   .lcd-wrap {
     padding: 16px 10px 8px;
   }
@@ -950,13 +936,6 @@ body.poptu-active #root {
   .fieldset > legend {
     font-size: 14px;
     left: 12px;
-  }
-  .faculty-name {
-    font-size: 15px;
-  }
-  .poptu .fieldset .faculty-name[lang="th"] {
-    font-size: 15px;
-    line-height: 1.25;
   }
   .w95-btn {
     font-size: 14px;
@@ -984,10 +963,6 @@ body.poptu-active #root {
     font-size: 13px;
   }
 
-  .floater {
-    font-size: 28px;
-  }
-
   .lizard-stage {
     min-height: clamp(13.5rem, 42vh, 30rem);
   }
@@ -998,6 +973,9 @@ body.poptu-active #root {
   .poptu {
     padding: max(18px, env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(28px, env(safe-area-inset-left, 0px));
+    --poptu-row-text: 18px;
+    --poptu-row-line: 1.25;
+    --poptu-floater: calc(var(--poptu-row-text) * 1.65);
   }
 
   .poptu-window {
@@ -1023,14 +1001,6 @@ body.poptu-active #root {
     height: 36px;
     font-size: 26px;
   }
-  .ranking-faculty,
-  .ranking-score {
-    font-size: 18px;
-  }
-  .rankings-window .win-title {
-    font-size: 16px;
-  }
-
   .lizard-stage {
     min-height: clamp(15rem, 48vh, 36rem);
   }
@@ -1054,13 +1024,6 @@ body.poptu-active #root {
     width: 28px;
     height: 28px;
     font-size: 22px;
-  }
-  .faculty-name {
-    font-size: 16px;
-  }
-  .poptu .fieldset .faculty-name[lang="th"] {
-    font-size: 16px;
-    line-height: 1.25;
   }
   .w95-btn {
     font-size: 14px;
