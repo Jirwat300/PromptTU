@@ -451,13 +451,17 @@ export default function PopTu() {
               {rankings.map((r, i) => (
                 <div key={r.id} className="ranking-row">
                   <span className="ranking-num">{i + 1}</span>
-                  <span className="ranking-faculty" title={r.name} lang="th">{r.name}</span>
+                  <span className="ranking-faculty" title={r.name} lang="th">
+                    <span className="poptu-zoom-text">{r.name}</span>
+                  </span>
                   <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
                 </div>
               ))}
               {rankings.length === 0 && (
                 <div className="ranking-row" style={{ opacity: 0.6 }}>
-                  <span className="ranking-faculty" lang="th">กำลังโหลด…</span>
+                  <span className="ranking-faculty" lang="th">
+                    <span className="poptu-zoom-text">กำลังโหลด…</span>
+                  </span>
                 </div>
               )}
             </div>
@@ -499,7 +503,9 @@ export default function PopTu() {
                 {currentFaculty ? currentFaculty.emoji : '😀'}
               </span>
               <span className="faculty-name" lang="th">
-                {currentFaculty ? currentFaculty.name : 'ยังไม่ได้เลือกคณะ'}
+                <span className="poptu-zoom-text">
+                  {currentFaculty ? currentFaculty.name : 'ยังไม่ได้เลือกคณะ'}
+                </span>
               </span>
               <button
                 type="button"
