@@ -227,7 +227,7 @@ body.poptu-active #root {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  gap: 10px;
+  gap: 8px;
   background: #fff;
   border: 1px solid var(--win-shadow);
   box-shadow:
@@ -235,6 +235,24 @@ body.poptu-active #root {
     inset -1px -1px 0 var(--win-light);
   overflow: hidden;
   overflow-anchor: none;
+}
+
+/* Rankings + LCD + lizard: takes remaining height; can scroll on short phones */
+.poptu-body-main {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* Credit + Faculty: never participates in flex-grow — always fully visible */
+.poptu-body-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* ----- inner Rankings window ----- */
@@ -544,6 +562,9 @@ body.poptu-active #root {
   margin: 2px 0 0;
   flex-shrink: 0;
 }
+.poptu-body-footer .poptu-credit {
+  margin: 0;
+}
 /* Thai attribution: cap size so [lang=th] 200% does not dominate between lizard and Faculty */
 .poptu .poptu-credit[lang="th"] {
   font-size: clamp(10px, 2.4vw, 12px);
@@ -733,10 +754,17 @@ body.poptu-active #root {
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
-  /* Credit above Faculty — pull fieldset up slightly + reserve bottom so row isn’t clipped */
+  .poptu-body-main {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    gap: 4px;
+  }
+
   .fieldset {
-    margin: -6px 2px 8px;
-    padding: 5px 8px 6px;
+    margin: 0 2px 4px;
+    padding: 6px 8px 6px;
     flex-shrink: 0;
   }
   .fieldset > legend {
@@ -775,8 +803,8 @@ body.poptu-active #root {
     min-width: 64px;
   }
 
-  .poptu .poptu-credit {
-    margin: 0 0 4px;
+  .poptu-body-footer .poptu-credit {
+    margin: 0;
     padding: 0 6px;
   }
   .poptu .poptu-credit[lang="th"] {
@@ -792,11 +820,6 @@ body.poptu-active #root {
   }
   .taskbar-icon-img { width: 28px; height: 28px; }
   .taskbar-item { font-size: 9px; gap: 2px; }
-
-  /* Slightly less vertical reserve so Faculty + credit stay inside .poptu-body (overflow:hidden) */
-  .lizard-stage {
-    min-height: clamp(9.5rem, 28vmin, 21rem);
-  }
 }
 
 /* Shorter mobile viewports — tighter LCD (not mascot); more room for one-screen layout */
@@ -826,11 +849,8 @@ body.poptu-active #root {
   .seg.vert { width: 8px; height: 22px; }
   .seg.g { top: 24px; }
   .fieldset {
-    margin: -5px 1px 10px;
+    margin: 0 1px 4px;
     padding: 5px 6px 6px;
-  }
-  .lizard-stage {
-    min-height: clamp(8.75rem, 26vmin, 19rem);
   }
   .poptu .poptu-credit[lang="th"] {
     font-size: clamp(9px, 2.5vw, 10.5px);
