@@ -247,7 +247,7 @@ body.poptu-active #root {
   min-height: 0;
   gap: 10px;
   background-color: #fff;
-  background-image: url('/poptu_bg.PNG');
+  background-image: url('./assets/pt.PNG');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
