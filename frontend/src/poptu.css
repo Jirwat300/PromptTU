@@ -292,6 +292,10 @@ body.poptu-active #root {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+.poptu .rankings-window .ranking-faculty[lang="th"] {
+  font-size: 29px;
+  line-height: 1.25;
+}
 
 /* ----- LCD counter ----- */
 .lcd-wrap {
@@ -734,11 +738,6 @@ body.poptu-active #root {
     font-size: 13px;
     line-height: 1.2;
   }
-  .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 13px;
-    line-height: 1.2;
-  }
-
   /* LCD digits slightly smaller on mobile but still prominent */
   .lcd-wrap {
     padding: 5px 2px 2px;
@@ -868,10 +867,6 @@ body.poptu-active #root {
     font-size: 13px;
     line-height: 1.15;
   }
-  .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 13px;
-    line-height: 1.15;
-  }
   .lcd-wrap {
     padding: 3px 2px 1px;
   }
@@ -935,11 +930,6 @@ body.poptu-active #root {
   .ranking-faculty,
   .ranking-score {
     font-size: 17px;
-  }
-  /* Same tier as .ranking-faculty; beat global [lang="th"] 200% for readable one-line rows */
-  .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 17px;
-    line-height: 1.25;
   }
   .rankings-window .win-title {
     font-size: 15px;
@@ -1032,10 +1022,6 @@ body.poptu-active #root {
   .ranking-faculty,
   .ranking-score {
     font-size: 18px;
-  }
-  .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 18px;
-    line-height: 1.25;
   }
   .rankings-window .win-title {
     font-size: 16px;
