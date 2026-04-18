@@ -64,10 +64,12 @@ body.poptu-active #root {
   --title-blue: #000080;
   --title-blue-grad: linear-gradient(90deg, #000080 0%, #1084d0 100%);
   --link: #0000ee;
-  --lcd-on: #0134b9;
-  --lcd-off-bg: #ffffff;
-  --lcd-off-fg: #91a2cd;
-  --lcd-bezel: #ffffff;
+  /* 7-segment score: gray plate + blue checker “off” + solid blue “on” (reference LCD look) */
+  --lcd-on: #186eff;
+  --lcd-off-base: #4a7fe8;
+  --lcd-off-fg: #b8d6ff;
+  --lcd-plate: #cacaca;
+  --lcd-plate-edge: #9a9a9a;
   /* Room for fixed taskbar + home indicator / safe area */
   --poptu-bottom-pad: calc(56px + env(safe-area-inset-bottom, 0px));
   /* One scale for ranking row copy, faculty name, and related UI (overridden per breakpoint) */
@@ -331,10 +333,19 @@ body.poptu-active #root {
 .lcd {
   display: inline-flex;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: transparent;
   border: none;
   box-shadow: none;
+}
+.lcd.lcd--on {
+  gap: 10px;
+  padding: 14px 18px;
+  background: var(--lcd-plate);
+  border: 2px solid var(--lcd-plate-edge);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.55),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.16);
 }
 /* Anti-cheat: Thai red text (AMD), no 7-segment / no dark plate */
 .lcd.lcd--caught {
@@ -366,18 +377,18 @@ body.poptu-active #root {
 .seg {
   position: absolute;
 }
-/* Unlit (checkerboard pattern) */
+/* Unlit: two-tone blue checkerboard (reads like dim segments on gray plate) */
 .lcd.lcd--on .seg {
-  background-color: var(--lcd-off-bg);
-  background-image: 
+  background-color: var(--lcd-off-base);
+  background-image:
     linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg)),
     linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg));
-  background-size: 4px 4px;
-  background-position: 0 0, 2px 2px;
+  background-size: 5px 5px;
+  background-position: 0 0, 2.5px 2.5px;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
-/* Lit (solid blue) */
+/* Lit: solid bright blue */
 .lcd.lcd--on .seg.on {
   background-image: none;
   background-color: var(--lcd-on);
@@ -510,7 +521,7 @@ body.poptu-active #root {
 /* ----- Faculty group box ----- */
 .fieldset {
   background: #fff;
-  border: 2px solid var(--win-dark);
+  border: 5px solid var(--win-dark);
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
   position: relative;
@@ -804,9 +815,9 @@ body.poptu-active #root {
   .lcd-wrap {
     padding: 3px 2px 1px;
   }
-  .lcd {
+  .lcd.lcd--on {
     gap: 4px;
-    padding: 3px 6px;
+    padding: 8px 10px;
   }
   .lcd-digit { width: 40px; height: 58px; }
   .seg.horiz { left: 4px; right: 4px; height: 9px; clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%); }
