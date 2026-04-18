@@ -437,7 +437,6 @@ export default function PopTu() {
         </div>
 
         <div className="poptu-body">
-          <div className="poptu-body-main">
           {/* Rankings window */}
           <section className="rankings-window" aria-label="Rankings">
             <header className="win-titlebar">
@@ -489,34 +488,31 @@ export default function PopTu() {
               </div>
             </div>
           </div>
-          </div>
 
-          <div className="poptu-body-footer">
-            <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
+          <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
 
-            {/* Faculty fieldset */}
-            <fieldset className="fieldset">
-              <legend>Faculty</legend>
-              <div className="faculty-row">
-                <span className="faculty-emoji" aria-hidden="true">
-                  {currentFaculty ? currentFaculty.emoji : '😀'}
-                </span>
-                <span className="faculty-name" lang="th">
-                  {currentFaculty ? currentFaculty.name : 'ยังไม่ได้เลือกคณะ'}
-                </span>
-                <button
-                  type="button"
-                  className="w95-btn"
-                  lang="th"
-                  onClick={() => {
-                    // flush any pending clicks for the previous faculty first
-                    flushPending()
-                    setFacultyId(null)
-                  }}
-                >เปลี่ยน</button>
-              </div>
-            </fieldset>
-          </div>
+          {/* Faculty fieldset */}
+          <fieldset className="fieldset">
+            <legend>Faculty</legend>
+            <div className="faculty-row">
+              <span className="faculty-emoji" aria-hidden="true">
+                {currentFaculty ? currentFaculty.emoji : '😀'}
+              </span>
+              <span className="faculty-name" lang="th">
+                {currentFaculty ? currentFaculty.name : 'ยังไม่ได้เลือกคณะ'}
+              </span>
+              <button
+                type="button"
+                className="w95-btn"
+                lang="th"
+                onClick={() => {
+                  // flush any pending clicks for the previous faculty first
+                  flushPending()
+                  setFacultyId(null)
+                }}
+              >เปลี่ยน</button>
+            </div>
+          </fieldset>
         </div>
       </section>
 
