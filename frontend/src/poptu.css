@@ -247,36 +247,39 @@ body.poptu-active #root {
     inset -1px -1px 0 var(--win-shadow);
   flex-shrink: 0;
 }
+.rankings-window .win-title {
+  font-size: 15px;
+}
 .rankings-body {
-  padding: 9px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
 .ranking-row {
   display: grid;
-  grid-template-columns: 40px 1fr auto;
+  grid-template-columns: 42px 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 5px 9px;
+  padding: 6px 10px;
   background: var(--win-face);
   border: 1px dashed #666;
 }
 .ranking-num {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: 'MS Sans Serif', 'Courier New', monospace;
-  font-size: 21px;
+  font-size: 23px;
   font-weight: 700;
   color: var(--title-blue);
   background: #fff;
   border: 2px dashed var(--title-blue);
 }
 .ranking-faculty {
-  font-size: 14px;
+  font-size: 16px;
   color: #000;
   white-space: nowrap;
   overflow: hidden;
@@ -284,7 +287,7 @@ body.poptu-active #root {
 }
 .ranking-score {
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--title-blue);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -469,7 +472,8 @@ body.poptu-active #root {
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
   position: relative;
-  margin: -4px 4px 6px;
+  /* Nudge away from body edges / taskbar so the Win95 border reads clearly */
+  margin: -2px 6px 12px;
   flex-shrink: 0;
 }
 .fieldset > legend {
@@ -698,7 +702,7 @@ body.poptu-active #root {
     padding: 2px 3px 2px 5px;
   }
   .rankings-window .win-title {
-    font-size: 12px;
+    font-size: 13px;
   }
   .rankings-window .win-btn {
     width: 17px;
@@ -706,27 +710,27 @@ body.poptu-active #root {
     font-size: 9px;
   }
   .rankings-body {
-    padding: 5px 5px 6px;
-    gap: 4px;
+    padding: 6px 6px 7px;
+    gap: 5px;
   }
   .ranking-row {
-    grid-template-columns: 24px 1fr auto;
+    grid-template-columns: 26px 1fr auto;
     gap: 5px;
-    padding: 3px 6px;
+    padding: 4px 6px;
   }
   .ranking-num {
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    font-size: 15px;
     border-width: 1.5px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.2;
   }
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.2;
   }
 
@@ -749,7 +753,7 @@ body.poptu-active #root {
 
   /* Credit above Faculty — pull fieldset up slightly + reserve bottom so row isn’t clipped */
   .fieldset {
-    margin: -6px 2px 8px;
+    margin: -4px 4px 14px;
     padding: 4px 8px 5px;
     flex-shrink: 0;
   }
@@ -772,7 +776,7 @@ body.poptu-active #root {
   }
   /* Thai faculty label: balanced with mobile ranking row (~12px effective) */
   .poptu .fieldset .faculty-name[lang="th"] {
-    font-size: 218%;
+    font-size: 228%;
     line-height: 1.2;
   }
   .poptu-modal-root .poptu-faculty-blurb[lang="th"] {
@@ -829,28 +833,28 @@ body.poptu-active #root {
     padding: 2px 3px;
   }
   .rankings-window .win-title {
-    font-size: 12px;
+    font-size: 13px;
   }
   .rankings-body {
-    padding: 5px 5px 6px;
-    gap: 4px;
+    padding: 6px 6px 7px;
+    gap: 5px;
   }
   .ranking-row {
-    padding: 3px 6px;
+    padding: 4px 6px;
     gap: 5px;
   }
   .ranking-num {
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    font-size: 15px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.15;
   }
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.15;
   }
   .lcd-wrap {
@@ -861,7 +865,7 @@ body.poptu-active #root {
   .seg.vert { width: 8px; height: 22px; }
   .seg.g { top: 24px; }
   .fieldset {
-    margin: -5px 1px 10px;
+    margin: -3px 4px 14px;
     padding: 5px 6px 6px;
   }
   .lizard-stage {
@@ -902,21 +906,24 @@ body.poptu-active #root {
   }
 
   .rankings-body {
-    padding: 11px;
-    gap: 8px;
+    padding: 12px;
+    gap: 9px;
   }
   .ranking-row {
-    padding: 5px 11px;
+    padding: 6px 12px;
     gap: 12px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 15px;
+    font-size: 17px;
   }
   /* Same tier as .ranking-faculty; beat global [lang="th"] 200% for readable one-line rows */
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1.25;
+  }
+  .rankings-window .win-title {
+    font-size: 15px;
   }
 
   .lcd-wrap {
@@ -924,7 +931,7 @@ body.poptu-active #root {
   }
 
   .fieldset {
-    margin: 0 6px 10px;
+    margin: 2px 6px 14px;
     padding: 12px 12px;
   }
   .fieldset > legend {
@@ -990,26 +997,29 @@ body.poptu-active #root {
   }
 
   .rankings-body {
-    padding: 12px;
-    gap: 9px;
+    padding: 13px;
+    gap: 10px;
   }
   .ranking-row {
-    padding: 7px 13px;
-    grid-template-columns: 44px 1fr auto;
+    padding: 8px 14px;
+    grid-template-columns: 46px 1fr auto;
     gap: 14px;
   }
   .ranking-num {
-    width: 34px;
-    height: 34px;
-    font-size: 24px;
+    width: 36px;
+    height: 36px;
+    font-size: 26px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 16px;
+    font-size: 18px;
   }
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.25;
+  }
+  .rankings-window .win-title {
+    font-size: 16px;
   }
 
   .lizard-stage {
@@ -1025,7 +1035,7 @@ body.poptu-active #root {
   }
 
   .fieldset {
-    margin: 0 8px 12px;
+    margin: 2px 8px 16px;
     padding: 14px 14px;
   }
   .faculty-row {
