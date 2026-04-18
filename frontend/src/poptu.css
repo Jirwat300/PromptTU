@@ -667,7 +667,8 @@ body.poptu-active #root {
 /* Mobile: fit one screen without page scroll — do not change .lizard-stage / .lizard-img (mascot size). */
 @media (max-width: 520px) {
   .poptu {
-    --poptu-bottom-pad: calc(72px + env(safe-area-inset-bottom, 0px));
+    /* Extra room so Faculty + legend stay above fixed taskbar (icons ~52px + labels + safe area) */
+    --poptu-bottom-pad: calc(92px + env(safe-area-inset-bottom, 0px));
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
   }
@@ -685,8 +686,8 @@ body.poptu-active #root {
   }
 
   .poptu-body {
-    padding: 5px 6px;
-    gap: 5px;
+    padding: 5px 6px 14px;
+    gap: 4px;
   }
 
   .rankings-window .win-titlebar {
@@ -732,10 +733,11 @@ body.poptu-active #root {
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
-  /* Credit sits above — keep a hair of space so negative margin does not overlap text */
+  /* Credit above Faculty — pull fieldset up slightly + reserve bottom so row isn’t clipped */
   .fieldset {
-    margin: -4px 2px 2px;
-    padding: 6px 8px 6px;
+    margin: -6px 2px 8px;
+    padding: 5px 8px 6px;
+    flex-shrink: 0;
   }
   .fieldset > legend {
     font-size: 11px;
@@ -791,19 +793,23 @@ body.poptu-active #root {
   .taskbar-icon-img { width: 28px; height: 28px; }
   .taskbar-item { font-size: 9px; gap: 2px; }
 
+  /* Slightly less vertical reserve so Faculty + credit stay inside .poptu-body (overflow:hidden) */
   .lizard-stage {
-    min-height: clamp(11rem, 36vmin, 26rem);
+    min-height: clamp(9.5rem, 28vmin, 21rem);
   }
 }
 
 /* Shorter mobile viewports — tighter LCD (not mascot); more room for one-screen layout */
 @media (max-height: 950px) and (max-width: 520px) {
+  .poptu {
+    --poptu-bottom-pad: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
   .poptu .lcd--caught .lcd-caught-msg {
     font-size: clamp(0.85rem, 3.8vw, 1.15rem);
   }
   .poptu-body {
-    padding: 4px 5px;
-    gap: 4px;
+    padding: 4px 5px 16px;
+    gap: 3px;
   }
   .rankings-body {
     padding: 3px;
@@ -820,8 +826,11 @@ body.poptu-active #root {
   .seg.vert { width: 8px; height: 22px; }
   .seg.g { top: 24px; }
   .fieldset {
-    margin: -5px 1px 2px;
-    padding: 5px 6px;
+    margin: -5px 1px 10px;
+    padding: 5px 6px 6px;
+  }
+  .lizard-stage {
+    min-height: clamp(8.75rem, 26vmin, 19rem);
   }
   .poptu .poptu-credit[lang="th"] {
     font-size: clamp(9px, 2.5vw, 10.5px);
