@@ -19,9 +19,6 @@ export default function ComingSoon() {
       </div>
 
       <footer className="coming-soon-footer">
-        <p className="coming-soon-meta">
-          สื่ออิเล็กทรอนิกส์และเว็บไซต์ผลิตโดย พรรคพร้อมธรรม
-        </p>
         <p className="coming-soon-copy">
           Copyright © 2026 พรรคพร้อมธรรม. All Rights Reserved.
         </p>

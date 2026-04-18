@@ -176,6 +176,9 @@ function FacultyPicker({ onPick }) {
               <option key={f.id} value={f.id}>{f.emoji} {f.name}</option>
             ))}
           </select>
+          <p className="poptu-faculty-meta" lang="th">
+            สื่ออิเล็กทรอนิกส์และเว็บไซต์ผลิตโดย พรรคพร้อมธรรม
+          </p>
         </div>
         <div className="win-dialog-actions">
           <button type="button" className="w95-btn" lang="th" onClick={() => onPick(selected)}>เริ่มเล่น</button>
@@ -541,8 +544,6 @@ export default function PopTu({ onNavigateToComingSoon }) {
               aria-hidden="true"
             />
           </div>
-
-          <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
 
           {/* Faculty fieldset */}
           <fieldset className="fieldset">

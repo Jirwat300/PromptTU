@@ -99,7 +99,7 @@ body.poptu-active #root {
   font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
 }
 .poptu [lang="th"]:not(button):not(.w95-btn):not(select),
-.poptu-modal-root [lang="th"]:not(button):not(.w95-btn):not(select) {
+.poptu-modal-root [lang="th"]:not(button):not(.w95-btn):not(select):not(.poptu-faculty-meta) {
   font-size: 200%;
   line-height: 1.25;
 }
@@ -113,6 +113,14 @@ body.poptu-active #root {
 .poptu-modal-root .poptu-faculty-blurb {
   margin: 0;
   line-height: 1.35;
+}
+.poptu-modal-root .poptu-faculty-meta {
+  text-align: center;
+  margin: 10px 0 0;
+  padding: 0 4px;
+  font-size: clamp(10px, 2.4vw, 12px);
+  line-height: 1.35;
+  color: #333;
 }
 .poptu-modal-root .poptu-faculty-select[lang="th"] {
   padding: 6px 8px;
@@ -603,27 +611,6 @@ body.poptu-active #root {
   line-height: var(--poptu-row-line);
 }
 
-/* ----- credit (above Faculty row, inside white body) ----- */
-.poptu-credit {
-  text-align: center;
-  font-size: 11px;
-  color: #333;
-  line-height: 1.35;
-  padding: 0 8px;
-  margin: 2px 0 0;
-  flex-shrink: 0;
-  text-shadow:
-    -1px 0 0 #fff,
-    1px 0 0 #fff,
-    0 -1px 0 #fff,
-    0 1px 0 #fff;
-}
-/* Thai attribution: cap size so [lang=th] 200% does not dominate between lizard and Faculty */
-.poptu .poptu-credit[lang="th"] {
-  font-size: clamp(10px, 2.4vw, 12px);
-  line-height: 1.35;
-}
-
 /* ----- error dialog ----- */
 .poptu-modal-root {
   position: fixed;
@@ -862,15 +849,6 @@ body.poptu-active #root {
     font-size: var(--poptu-row-text);
   }
 
-  .poptu .poptu-credit {
-    margin: 0 0 2px;
-    padding: 0 4px;
-  }
-  .poptu .poptu-credit[lang="th"] {
-    font-size: clamp(9px, 2.65vw, 11px);
-    line-height: 1.32;
-  }
-
   .poptu-taskbar {
     padding: 6px 8px max(6px, env(safe-area-inset-bottom, 0px));
   }
@@ -940,10 +918,6 @@ body.poptu-active #root {
   }
   .poptu-stage-logo {
     width: clamp(2rem, 10vmin, 3.25rem);
-  }
-  .poptu .poptu-credit[lang="th"] {
-    font-size: clamp(9px, 2.5vw, 10.5px);
-    padding: 0 4px;
   }
 }
 
@@ -1041,13 +1015,6 @@ body.poptu-active #root {
   .w95-btn {
     font-size: 14px;
     padding: 5px 16px;
-  }
-
-  .poptu .poptu-credit[lang="th"] {
-    margin-top: 0;
-    padding: 6px 12px 8px;
-    font-size: 12px;
-    line-height: 1.35;
   }
 
   .poptu-taskbar {
@@ -1162,12 +1129,6 @@ body.poptu-active #root {
     font-size: 14px;
     padding: 6px 18px;
     min-width: 80px;
-  }
-
-  .poptu .poptu-credit[lang="th"] {
-    font-size: 13px;
-    padding: 8px 16px 10px;
-    line-height: 1.35;
   }
 
   .poptu-taskbar {

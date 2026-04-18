@@ -73,7 +73,6 @@
   padding-bottom: 0.5rem;
 }
 
-.coming-soon-meta,
 .coming-soon-copy {
   margin: 0.35rem 0 0;
   font-size: clamp(0.62rem, 2.8vw, 0.72rem);
