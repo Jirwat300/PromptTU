@@ -672,7 +672,7 @@ body.poptu-active #root {
 @media (max-width: 520px) {
   .poptu {
     /* Extra room so Faculty + legend stay above fixed taskbar (icons ~52px + labels + safe area) */
-    --poptu-bottom-pad: calc(92px + env(safe-area-inset-bottom, 0px));
+    --poptu-bottom-pad: calc(100px + env(safe-area-inset-bottom, 0px));
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
   }
@@ -690,8 +690,13 @@ body.poptu-active #root {
   }
 
   .poptu-body {
-    padding: 5px 6px 14px;
+    padding: 5px 6px 22px;
     gap: 4px;
+    /* Let the white body scroll slightly if the column overflows — keeps Faculty border + text uncropped */
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
 
   /* Rankings: larger than ultra-compact pass — Faculty still full (space from flex lizard area) */
@@ -751,33 +756,39 @@ body.poptu-active #root {
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
-  /* Credit above Faculty — pull fieldset up slightly + reserve bottom so row isn’t clipped */
+  /* Faculty: no negative margin (avoids border/legend clipping under overflow); dark edge reads on white */
   .fieldset {
-    margin: -4px 4px 14px;
-    padding: 4px 8px 5px;
+    margin: 6px 6px 18px;
+    padding: 8px 10px 8px;
     flex-shrink: 0;
+    border: 1px solid var(--win-dark);
+    box-shadow:
+      inset 1px 1px 0 var(--win-light),
+      inset -1px -1px 0 var(--win-shadow);
   }
   .fieldset > legend {
-    font-size: 11px;
-    top: -7px;
-    left: 8px;
-    padding: 0 4px;
+    font-size: 12px;
+    top: -8px;
+    left: 10px;
+    padding: 0 5px;
   }
   .faculty-row {
-    gap: 6px;
+    gap: 8px;
+    align-items: center;
+    min-height: 2.5rem;
   }
   .faculty-emoji {
-    width: 20px;
-    height: 20px;
-    font-size: 17px;
+    width: 22px;
+    height: 22px;
+    font-size: 18px;
   }
   .faculty-name {
-    font-size: 11px;
+    font-size: 13px;
   }
-  /* Thai faculty label: balanced with mobile ranking row (~12px effective) */
+  /* Thai faculty: absolute px floor — % of parent was too small / inconsistent on phones */
   .poptu .fieldset .faculty-name[lang="th"] {
-    font-size: 228%;
-    line-height: 1.2;
+    font-size: clamp(15px, 4.8vw, 19px);
+    line-height: 1.22;
   }
   .poptu-modal-root .poptu-faculty-blurb[lang="th"] {
     font-size: 215%;
@@ -820,14 +831,18 @@ body.poptu-active #root {
 /* Shorter mobile viewports — tighter LCD (not mascot); more room for one-screen layout */
 @media (max-height: 950px) and (max-width: 520px) {
   .poptu {
-    --poptu-bottom-pad: calc(96px + env(safe-area-inset-bottom, 0px));
+    --poptu-bottom-pad: calc(102px + env(safe-area-inset-bottom, 0px));
   }
   .poptu .lcd--caught .lcd-caught-msg {
     font-size: clamp(0.85rem, 3.8vw, 1.15rem);
   }
   .poptu-body {
-    padding: 4px 5px 16px;
+    padding: 4px 5px 20px;
     gap: 3px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
   .rankings-window .win-titlebar {
     padding: 2px 3px;
@@ -865,8 +880,12 @@ body.poptu-active #root {
   .seg.vert { width: 8px; height: 22px; }
   .seg.g { top: 24px; }
   .fieldset {
-    margin: -3px 4px 14px;
-    padding: 5px 6px 6px;
+    margin: 5px 6px 16px;
+    padding: 7px 8px 7px;
+    border: 1px solid var(--win-dark);
+    box-shadow:
+      inset 1px 1px 0 var(--win-light),
+      inset -1px -1px 0 var(--win-shadow);
   }
   .lizard-stage {
     min-height: clamp(10rem, 31vmin, 21rem);
