@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './poptu.css'
 import lizard1 from './assets/Lizard1.PNG'
 import lizard2 from './assets/Lizard2.PNG'
@@ -205,6 +205,17 @@ export default function PopTu() {
   const [errOpen, setErrOpen] = useState(false)
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
+  const lizardPopAnchorRef = useRef(null)
+
+  /** Restart CSS pop animation without remounting (remount was collapsing flex height and jumping the faculty row). */
+  useLayoutEffect(() => {
+    if (popAnim === 0) return
+    const el = lizardPopAnchorRef.current
+    if (!el) return
+    el.style.animation = 'none'
+    void el.offsetWidth
+    el.style.animation = ''
+  }, [popAnim])
 
   const clickTimes = useRef([])
   const floaterIdRef = useRef(0)
@@ -452,9 +463,7 @@ export default function PopTu() {
                 onClick={onLizardClick}
                 aria-label="Pop the lizard"
               >
-                {/* key re-mounts only the inner span so CSS animation restarts
-                    on every click — the button itself keeps focus. */}
-                <span className="lizard-pop-anchor" key={popAnim}>
+                <span className="lizard-pop-anchor" ref={lizardPopAnchorRef}>
                   <Lizard src={poseSrc} />
                 </span>
               </button>

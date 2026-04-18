@@ -9,11 +9,13 @@ body.poptu-active {
   min-height: 100%;
   height: 100%;
   overflow: hidden;
+  overflow-anchor: none;
 }
 
 /* iOS Safari: make the React root fill the visual viewport (avoids “floating” layout vs Figma) */
 html:has(body.poptu-active) {
   height: 100%;
+  overflow-anchor: none;
 }
 
 body.poptu-active #root {
@@ -47,6 +49,8 @@ body.poptu-active #root {
   width: 100%;
   min-height: 0;
   overflow: hidden;
+  overflow-anchor: none;
+  overscroll-behavior: none;
   color: #000;
   font-family: 'Tahoma', 'MS Sans Serif', 'FC Minimal', system-ui, sans-serif;
   font-size: 14px;
@@ -152,6 +156,7 @@ body.poptu-active #root {
     inset 1px 1px 0 var(--win-shadow),
     inset -1px -1px 0 var(--win-light);
   overflow: hidden;
+  overflow-anchor: none;
 }
 
 /* ----- inner Rankings window ----- */
@@ -290,6 +295,8 @@ body.poptu-active #root {
   background: #fff;
   user-select: none;
   overflow: hidden;
+  overflow-anchor: none;
+  contain: layout;
   position: relative;
 }
 .lizard-wrap {
@@ -311,6 +318,8 @@ body.poptu-active #root {
   align-items: flex-end;
   justify-content: center;
   transition: transform 70ms ease-out;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .lizard-btn:active {
   transform: scale(0.97);
