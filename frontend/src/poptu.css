@@ -237,7 +237,11 @@ body.poptu-active #root {
   flex: 1;
   min-height: 0;
   gap: 10px;
-  background: #fff;
+  background-color: #fff;
+  background-image: url('/poptu_bg.PNG');
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
   border: 1px solid var(--win-shadow);
   box-shadow:
     inset 1px 1px 0 var(--win-shadow),
@@ -504,6 +508,7 @@ body.poptu-active #root {
 
 /* ----- Faculty group box ----- */
 .fieldset {
+  background: #fff;
   border: 1px solid var(--win-shadow);
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
@@ -596,6 +601,11 @@ body.poptu-active #root {
   padding: 0 8px;
   margin: 2px 0 0;
   flex-shrink: 0;
+  text-shadow:
+    -1px 0 0 #fff,
+    1px 0 0 #fff,
+    0 -1px 0 #fff,
+    0 1px 0 #fff;
 }
 /* Thai attribution: cap size so [lang=th] 200% does not dominate between lizard and Faculty */
 .poptu .poptu-credit[lang="th"] {
