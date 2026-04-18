@@ -46,6 +46,18 @@ html:has(body.poptu-active) {
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 
+/* Mobile: let fixed credit (below) paint past overflow — narrow screens need 2-line attribution */
+@media (max-width: 520px) {
+  html:has(body.poptu-active) {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+  body.poptu-active {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+}
+
 body.poptu-active #root {
   display: flex;
   flex-direction: column;
@@ -68,8 +80,6 @@ body.poptu-active #root {
   --lcd-off-bg: #ffffff;
   --lcd-off-fg: #91a2cd;
   --lcd-bezel: #ffffff;
-  --lcd-red: #ff2a2a;
-  --lcd-red-off: rgba(255, 42, 42, 0.12);
   /* Room for fixed taskbar + home indicator / safe area */
   --poptu-bottom-pad: calc(56px + env(safe-area-inset-bottom, 0px));
 
@@ -308,14 +318,24 @@ body.poptu-active #root {
   border: none;
   box-shadow: none;
 }
-.lcd.lcd--red {
-  background: #110000;
+/* Anti-cheat: Thai red text (AMD), no 7-segment / no dark plate */
+.lcd.lcd--caught {
+  background: transparent;
+  padding: 6px 10px 10px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
-.lcd.lcd--red .seg {
-  background: var(--lcd-red-off);
-}
-.lcd.lcd--red .seg.on {
-  background: var(--lcd-red);
+.poptu .lcd--caught .lcd-caught-msg {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: clamp(0.95rem, 4.2vw, 1.35rem);
+  font-weight: 400;
+  line-height: 1.25;
+  color: #d40000;
+  text-align: center;
+  display: block;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .lcd-digit {
@@ -611,12 +631,18 @@ body.poptu-active #root {
   color: #fff;
   padding: 10px 14px max(10px, env(safe-area-inset-bottom, 0px));
   display: flex;
-  gap: 22px;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   border-top: 2px solid #000;
   box-shadow: inset 0 2px 0 rgba(255,255,255,0.15);
   font-family: inherit;
+}
+.poptu-taskbar-cluster {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 22px;
 }
 .taskbar-item {
   background: transparent;
@@ -647,11 +673,25 @@ body.poptu-active #root {
 
 /* Mobile: fit one screen without page scroll — do not change .lizard-stage / .lizard-img (mascot size). */
 @media (max-width: 520px) {
+  /*
+   * Fixed .poptu-credit must not sit under overflow:hidden ancestors (clips to ~1 line — only “สื่อดิจิทัล…” visible).
+   * Keep horizontal containment; lizard stays clipped by .lizard-stage { overflow:hidden }.
+   */
   .poptu {
-    /* Taskbar ~52px + Thai credit line(s); keeps credit above fixed bar without touching .lizard-stage rules */
-    --poptu-bottom-pad: calc(72px + env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
+    overflow-y: visible;
+    /* Taskbar + 2-line Thai credit above it */
+    --poptu-bottom-pad: calc(76px + env(safe-area-inset-bottom, 0px));
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
+  }
+  .poptu-window {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+  .poptu-body {
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   /* Saves one chrome row; File/Edit bar is decorative on this route */
@@ -754,17 +794,42 @@ body.poptu-active #root {
     min-width: 64px;
   }
 
-  .poptu-credit {
-    font-size: 10px;
-    line-height: 1.25;
-    padding: 0 6px 2px;
-    margin-top: -4px;
-    margin-bottom: 2px;
+  /*
+   * Credit was last in .poptu-body (overflow:hidden) + tall min-height on .lizard-stage,
+   * so it got clipped on short phones. Fixed above taskbar: out of flex flow, no change to .lizard-stage / .lizard-img.
+   */
+  .poptu .poptu-credit {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(640px, calc(100vw - 12px));
+    max-width: calc(100vw - 12px);
+    box-sizing: border-box;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    z-index: 8;
+    margin: 0;
+    padding: 4px 10px 5px;
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow:
+      0 0 3px rgba(0, 0, 0, 0.9),
+      0 1px 0 rgba(0, 0, 0, 0.55);
+    line-height: 1.3;
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
+    pointer-events: none;
+  }
+  .poptu .poptu-credit[lang="th"] {
+    font-size: clamp(10px, 2.85vw, 13px);
+    line-height: 1.32;
   }
 
   .poptu-taskbar {
-    gap: 6px;
     padding: 6px 8px max(6px, env(safe-area-inset-bottom, 0px));
+  }
+  .poptu-taskbar-cluster {
+    gap: 10px;
   }
   .taskbar-icon-img { width: 28px; height: 28px; }
   .taskbar-item { font-size: 9px; gap: 2px; }
@@ -776,6 +841,9 @@ body.poptu-active #root {
 
 /* Shorter mobile viewports — tighter LCD (not mascot); more room for one-screen layout */
 @media (max-height: 950px) and (max-width: 520px) {
+  .poptu .lcd--caught .lcd-caught-msg {
+    font-size: clamp(0.85rem, 3.8vw, 1.15rem);
+  }
   .poptu-body {
     padding: 4px 5px;
     gap: 4px;
@@ -798,11 +866,9 @@ body.poptu-active #root {
     margin: -5px 1px 2px;
     padding: 5px 6px;
   }
-  .poptu-credit {
-    font-size: 9px;
-    padding: 0 4px 2px;
-    margin-top: -3px;
-    margin-bottom: 2px;
+  .poptu .poptu-credit[lang="th"] {
+    font-size: clamp(10px, 2.9vw, 13px);
+    padding: 3px 8px 4px;
   }
 }
 
@@ -875,6 +941,8 @@ body.poptu-active #root {
 
   .poptu-taskbar {
     padding: 12px 20px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+  .poptu-taskbar-cluster {
     gap: 28px;
   }
   .taskbar-icon-img {
@@ -965,8 +1033,10 @@ body.poptu-active #root {
   }
 
   .poptu-taskbar {
-    gap: 40px;
     padding: 14px 32px max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .poptu-taskbar-cluster {
+    gap: 40px;
   }
   .taskbar-icon-img {
     width: 44px;

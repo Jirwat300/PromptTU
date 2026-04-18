@@ -25,7 +25,6 @@ import iconShare from './assets/internet_icon.png'
 
 /** Thammasat University faculties — keep each id stable for persistence */
 const FACULTIES = [
-  { id: 'arch',    emoji: '🏛️', name: 'คณะสถาปัตยกรรมศาสตร์และการผังเมือง' },
   { id: 'law',     emoji: '⚖️', name: 'คณะนิติศาสตร์' },
   { id: 'comm',    emoji: '📊', name: 'คณะพาณิชยศาสตร์และการบัญชี' },
   { id: 'polsci',  emoji: '🏛️', name: 'คณะรัฐศาสตร์' },
@@ -36,14 +35,20 @@ const FACULTIES = [
   { id: 'journ',   emoji: '📰', name: 'คณะวารสารศาสตร์และสื่อสารมวลชน' },
   { id: 'sci',     emoji: '🔬', name: 'คณะวิทยาศาสตร์และเทคโนโลยี' },
   { id: 'eng',     emoji: '⚙️', name: 'คณะวิศวกรรมศาสตร์' },
+  { id: 'arch',    emoji: '🏛️', name: 'คณะสถาปัตยกรรมศาสตร์และการผังเมือง' },
   { id: 'fine',    emoji: '🎨', name: 'คณะศิลปกรรมศาสตร์' },
   { id: 'med',     emoji: '🩺', name: 'คณะแพทยศาสตร์' },
+  { id: 'allied',  emoji: '🧪', name: 'คณะสหเวชศาสตร์' },
   { id: 'dent',    emoji: '🦷', name: 'คณะทันตแพทยศาสตร์' },
   { id: 'nurse',   emoji: '💉', name: 'คณะพยาบาลศาสตร์' },
   { id: 'pub',     emoji: '🏥', name: 'คณะสาธารณสุขศาสตร์' },
-  { id: 'allied',  emoji: '🧪', name: 'คณะสหเวชศาสตร์' },
+  { id: 'pharm',   emoji: '💊', name: 'คณะเภสัชศาสตร์' },
+  { id: 'learn',   emoji: '🎓', name: 'คณะวิทยาการเรียนรู้และศึกษาศาสตร์' },
+  { id: 'puey',    emoji: '🌱', name: 'วิทยาลัยพัฒนศาสตร์ ป๋วย อึ๊งภากรณ์' },
+  { id: 'glob',    emoji: '🌐', name: 'วิทยาลัยโลกคดีศึกษา' },
+  { id: 'cicm',    emoji: '⚕️', name: 'วิทยาลัยแพทยศาสตร์นานาชาติจุฬาภรณ์' },
   { id: 'inter',   emoji: '🌏', name: 'วิทยาลัยนานาชาติปรีดี พนมยงค์' },
-  { id: 'learn',   emoji: '🎓', name: 'วิทยาลัยสหวิทยาการ' },
+  { id: 'siit',    emoji: '🔧', name: 'สถาบันเทคโนโลยีนานาชาติสิรินธร' },
 ]
 
 const MAX_CLICK_BUFFER = 20 // how many recent click timestamps we analyse
@@ -113,8 +118,15 @@ function LcdDigit({ char }) {
 
 function Lcd({ value, caught }) {
   const padded = String(Math.max(0, Math.floor(value))).padStart(4, '0')
+  if (caught) {
+    return (
+      <div className="lcd lcd--caught" role="alert" aria-live="assertive" aria-label="ตรวจพบการโกง">
+        <span className="lcd-caught-msg" lang="th">อย่าโกง ผมจับได้นะ !!!</span>
+      </div>
+    )
+  }
   return (
-    <div className={`lcd ${caught ? 'lcd--red' : 'lcd--on'}`} role="status" aria-label={`Score ${value}`}>
+    <div className="lcd lcd--on" role="status" aria-label={`Score ${value}`}>
       {padded.split('').map((ch, i) => <LcdDigit key={i} char={ch} />)}
     </div>
   )
@@ -517,43 +529,45 @@ export default function PopTu() {
 
       {/* bottom taskbar */}
       <nav className="poptu-taskbar" aria-label="Taskbar">
-        <button
-          type="button"
-          className="taskbar-item taskbar-item--home"
-          onClick={goHome}
-          title="ไปหน้าหลักเว็บพร้อมธรรม"
-        >
-          <img src={iconHome} alt="Home" className="taskbar-icon-img" draggable={false} />
-          <span className="taskbar-label">Home</span>
-        </button>
-        <button
-          type="button"
-          className="taskbar-item taskbar-item--help"
-          onClick={() => alert('คลิกไปเรื่อย ๆ จนกว่าจะเมื่อย\nอย่าใช้ auto-click เด็ดขาด เดี๋ยวโดนจับ!')}
-          title="วิธีเล่น"
-        >
-          <img src={iconHelp} alt="Help" className="taskbar-icon-img" draggable={false} />
-          <span className="taskbar-label">????</span>
-        </button>
-        <button
-          type="button"
-          className="taskbar-item taskbar-item--share"
-          onClick={async () => {
-            const url = window.location.href
-            try {
-              if (navigator.share) {
-                await navigator.share({ title: 'POP TU — พร้อมธรรม', url })
-              } else {
-                await navigator.clipboard.writeText(url)
-                alert('คัดลอกลิงก์แล้ว — ไปส่งให้เพื่อนได้เลย')
-              }
-            } catch { /* user cancelled share */ }
-          }}
-          title="ข้อมูลสปอย์เว็บกับนโยบาย"
-        >
-          <img src={iconShare} alt="Share" className="taskbar-icon-img" draggable={false} />
-          <span className="taskbar-label">Share</span>
-        </button>
+        <div className="poptu-taskbar-cluster">
+          <button
+            type="button"
+            className="taskbar-item taskbar-item--home"
+            onClick={goHome}
+            title="ไปหน้าหลักเว็บพร้อมธรรม"
+          >
+            <img src={iconHome} alt="Home" className="taskbar-icon-img" draggable={false} />
+            <span className="taskbar-label">Home</span>
+          </button>
+          <button
+            type="button"
+            className="taskbar-item taskbar-item--help"
+            onClick={() => alert('คลิกไปเรื่อย ๆ จนกว่าจะเมื่อย\nอย่าใช้ auto-click เด็ดขาด เดี๋ยวโดนจับ!')}
+            title="วิธีเล่น"
+          >
+            <img src={iconHelp} alt="Help" className="taskbar-icon-img" draggable={false} />
+            <span className="taskbar-label">Ready?</span>
+          </button>
+          <button
+            type="button"
+            className="taskbar-item taskbar-item--share"
+            onClick={async () => {
+              const url = window.location.href
+              try {
+                if (navigator.share) {
+                  await navigator.share({ title: 'POP TU — พร้อมธรรม', url })
+                } else {
+                  await navigator.clipboard.writeText(url)
+                  alert('คัดลอกลิงก์แล้ว — ไปส่งให้เพื่อนได้เลย')
+                }
+              } catch { /* user cancelled share */ }
+            }}
+            title="ข้อมูลสปอย์เว็บกับนโยบาย"
+          >
+            <img src={iconShare} alt="Share" className="taskbar-icon-img" draggable={false} />
+            <span className="taskbar-label">Share</span>
+          </button>
+        </div>
       </nav>
     </main>
   )

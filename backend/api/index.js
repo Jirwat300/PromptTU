@@ -80,8 +80,9 @@ app.post('/api/analytics', async (req, res) => {
 
 // Valid faculty ids — matches FACULTIES in frontend/src/poptu.jsx
 const POPTU_FACULTY_IDS = new Set([
-  'arch','law','comm','polsci','econ','soc','anthro','arts','journ','sci',
-  'eng','fine','med','dent','nurse','pub','allied','inter','learn',
+  'law', 'comm', 'polsci', 'econ', 'soc', 'anthro', 'arts', 'journ', 'sci',
+  'eng', 'arch', 'fine', 'med', 'allied', 'dent', 'nurse', 'pub', 'pharm', 'learn',
+  'puey', 'glob', 'cicm', 'inter', 'siit',
 ]);
 
 // Server-side rate-limit to keep one IP from hammering the RPC.
