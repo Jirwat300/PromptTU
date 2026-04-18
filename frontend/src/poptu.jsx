@@ -249,7 +249,7 @@ function ReadyDialog({ onClose }) {
 
 /* ================================ Page ================================ */
 
-export default function PopTu({ onNavigateHome }) {
+export default function PopTu({ onNavigateToComingSoon }) {
   const [facultyId, setFacultyId] = useState(null)
   /** Server-truth scores keyed by faculty id. Starts empty; populated on mount. */
   const [scores, setScores] = useState({})
@@ -444,10 +444,9 @@ export default function PopTu({ onNavigateHome }) {
   const goHome = useCallback(() => {
     // flush any queued pops before navigating away
     flushPending()
-    // #home matches hero id and always differs from #poptu so hashchange fires reliably
-    window.location.hash = '#home'
-    onNavigateHome?.()
-  }, [flushPending, onNavigateHome])
+    window.location.hash = '#comingsoon'
+    onNavigateToComingSoon?.()
+  }, [flushPending, onNavigateToComingSoon])
 
   const myCount = facultyId ? scores[facultyId] ?? 0 : 0
 

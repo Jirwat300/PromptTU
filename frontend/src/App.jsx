@@ -1,21 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
+import ComingSoon from './comingsoon.jsx'
 import Home from './home.jsx'
 import PopTu from './poptu.jsx'
 
-// Tiny hash-based page switcher. `#poptu` ⇒ the Popcat-style mini game;
-// anything else (including the section anchors used by Home like #about)
-// falls through to the main site.
+// Hash-based page switcher: `#poptu` game, `#comingsoon` teaser, else main site (Home + section anchors).
 function getPage() {
   if (typeof window === 'undefined') return 'home'
-  return window.location.hash === '#poptu' ? 'poptu' : 'home'
+  const h = window.location.hash
+  if (h === '#poptu') return 'poptu'
+  if (h === '#comingsoon') return 'comingsoon'
+  return 'home'
 }
 
 function App() {
   const [page, setPage] = useState(getPage)
 
-  /** Ensures Home renders even if hashchange does not fire (some mobile WebViews). */
-  const navigateHome = useCallback(() => {
-    setPage('home')
+  /** POPTU taskbar Home → coming soon (also if hashchange is flaky on mobile). */
+  const navigateToComingSoon = useCallback(() => {
+    setPage('comingsoon')
   }, [])
 
   useEffect(() => {
@@ -28,10 +30,14 @@ function App() {
   useEffect(() => { window.scrollTo(0, 0) }, [page])
 
   useEffect(() => {
-    document.title = page === 'poptu' ? 'พร้อมธรรม · POPTU เกม' : 'พร้อมธรรม'
+    if (page === 'poptu') document.title = 'พร้อมธรรม · POPTU เกม'
+    else if (page === 'comingsoon') document.title = 'พร้อมธรรม · เร็ว ๆ นี้'
+    else document.title = 'พร้อมธรรม'
   }, [page])
 
-  return page === 'poptu' ? <PopTu onNavigateHome={navigateHome} /> : <Home />
+  if (page === 'poptu') return <PopTu onNavigateToComingSoon={navigateToComingSoon} />
+  if (page === 'comingsoon') return <ComingSoon />
+  return <Home />
 }
 
 export default App
