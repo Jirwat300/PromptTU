@@ -64,12 +64,11 @@ body.poptu-active #root {
   --title-blue: #000080;
   --title-blue-grad: linear-gradient(90deg, #000080 0%, #1084d0 100%);
   --link: #0000ee;
-  /* 7-segment score: gray plate + blue checker “off” + solid blue “on” (reference LCD look) */
-  --lcd-on: #186eff;
-  --lcd-off-base: #4a7fe8;
-  --lcd-off-fg: #b8d6ff;
-  --lcd-plate: #cacaca;
-  --lcd-plate-edge: #9a9a9a;
+  /* 7-segment score: gray plate, black bezel, #002BFF + #FFFFFF checker off, solid #002BFF on */
+  --lcd-on: #002bff;
+  --lcd-off-base: #002bff;
+  --lcd-off-fg: #ffffff;
+  --lcd-plate: #d4d4d4;
   /* Room for fixed taskbar + home indicator / safe area */
   --poptu-bottom-pad: calc(56px + env(safe-area-inset-bottom, 0px));
   /* One scale for ranking row copy, faculty name, and related UI (overridden per breakpoint) */
@@ -342,10 +341,10 @@ body.poptu-active #root {
   gap: 10px;
   padding: 14px 18px;
   background: var(--lcd-plate);
-  border: 2px solid var(--lcd-plate-edge);
+  border: 5px solid #000000;
   box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.55),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.16);
+    inset 2px 2px 0 #ffffff,
+    inset -2px -2px 0 #6b6b6b;
 }
 /* Anti-cheat: Thai red text (AMD), no 7-segment / no dark plate */
 .lcd.lcd--caught {
@@ -377,18 +376,18 @@ body.poptu-active #root {
 .seg {
   position: absolute;
 }
-/* Unlit: two-tone blue checkerboard (reads like dim segments on gray plate) */
+/* Unlit: #002BFF / #FFFFFF pixel checker (dither on “off” segments) */
 .lcd.lcd--on .seg {
   background-color: var(--lcd-off-base);
   background-image:
     linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg)),
     linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg));
-  background-size: 5px 5px;
-  background-position: 0 0, 2.5px 2.5px;
+  background-size: 4px 4px;
+  background-position: 0 0, 2px 2px;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
-/* Lit: solid bright blue */
+/* Lit: solid #002BFF */
 .lcd.lcd--on .seg.on {
   background-image: none;
   background-color: var(--lcd-on);
