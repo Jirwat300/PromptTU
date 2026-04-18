@@ -25,12 +25,13 @@ body.poptu-active {
   --lcd-red: #ff2a2a;
   --lcd-red-off: rgba(255, 42, 42, 0.12);
 
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   color: #000;
   font-family: 'Tahoma', 'MS Sans Serif', 'FC Minimal', system-ui, sans-serif;
   font-size: 14px;
-  padding: 16px 12px 84px; /* bottom padding for taskbar */
+  padding: 16px 12px 64px; /* bottom padding for taskbar */
   display: flex;
   justify-content: center;
 }
@@ -38,6 +39,7 @@ body.poptu-active {
 /* ----- the main Win95 window ----- */
 .poptu-window {
   width: min(640px, 100%);
+  height: 100%;
   background: var(--win-face);
   border: 2px solid var(--win-dark);
   box-shadow:
@@ -120,6 +122,8 @@ body.poptu-active {
   padding: 10px;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 12px;
   background: #fff;
   border: 1px solid var(--win-shadow);
@@ -256,7 +260,8 @@ body.poptu-active {
   justify-content: center;
   align-items: flex-end;
   padding: 6px 4px 12px;
-  height: 520px; /* Fixed height guarantees no layout shift ever */
+  flex: 1;
+  min-height: 0;
   background: #fff;
   user-select: none;
 }
