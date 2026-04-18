@@ -11,7 +11,7 @@ import iconShare from './assets/internet_icon.png'
 import ptLogo from './assets/pt-logo-dpi.svg'
 
 /* =========================================================================
- * POP TU — Popcat-style clicker themed as a Windows 95 desktop app.
+ * PT — Popcat-style clicker themed as a Windows 95 desktop app.
  *
  * Features:
  *   - Faculty picker (blocks the game until a faculty is chosen)
@@ -420,9 +420,9 @@ export default function PopTu() {
 
   return (
     <main className="poptu">
-      <section className="poptu-window" aria-label="POP TU window">
+      <section className="poptu-window" aria-label="PT window">
         <header className="win-titlebar">
-          <span className="win-title">POP TU</span>
+          <span className="win-title">PT</span>
           <div className="win-title-btns">
             <button type="button" className="win-btn" aria-label="Minimise">_</button>
             <button type="button" className="win-btn" aria-label="Maximise">□</button>
@@ -569,7 +569,7 @@ export default function PopTu() {
               const url = window.location.href
               try {
                 if (navigator.share) {
-                  await navigator.share({ title: 'POP TU — พร้อมธรรม', url })
+                  await navigator.share({ title: 'PT — พร้อมธรรม', url })
                 } else {
                   await navigator.clipboard.writeText(url)
                   alert('คัดลอกลิงก์แล้ว — ไปส่งให้เพื่อนได้เลย')

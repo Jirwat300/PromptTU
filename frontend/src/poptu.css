@@ -1,5 +1,5 @@
 /* =========================================================
-   POP TU — retro Windows 95 themed clicker (Popcat-style)
+   PT — retro Windows 95 themed clicker (Popcat-style)
    Scoped under .poptu so it won't bleed into home.jsx
    ========================================================= */
 
@@ -27,14 +27,14 @@
   src: url('./assets/fonts/2005_iannnnnAMD.ttf') format('truetype');
 }
 
-/* ----- reset background when on POP TU page ----- */
+/* ----- reset background when on PT (#poptu) page ----- */
 body.poptu-active {
   background: #3a6ea5 !important; /* classic Win95 teal-blue desktop */
   min-height: 100%;
   height: 100%;
   overflow: hidden;
   overflow-anchor: none;
-  /* Override :root FC Minimal so every POP TU subtree uses bundled Win95 fonts */
+  /* Override :root FC Minimal so every PT subtree uses bundled Win95 fonts */
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 
@@ -920,7 +920,7 @@ body.poptu-active #root {
   }
 }
 
-/* ----- Tablet / small desktop (keeps full Win95 chrome; more room than phone) ----- */
+/* ----- Tablet / small desktop (min-width 521px only — do not mirror into max-width:520 mobile) ----- */
 @media (min-width: 521px) {
   .poptu {
     padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
@@ -931,7 +931,7 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(680px, 100%);
+    width: min(680px, min(100%, 94vw));
   }
 
   .poptu-body {
@@ -1000,6 +1000,19 @@ body.poptu-active #root {
   .lizard-stage {
     min-height: clamp(13.5rem, 42vh, 30rem);
   }
+
+  .poptu-stage-logo {
+    width: clamp(3rem, 12vmin, 6.5rem);
+    right: max(8px, 4.5%);
+    bottom: max(6px, 3.5%);
+  }
+}
+
+/* Short laptop / small desktop viewport — keep mascot usable without touching mobile rules */
+@media (min-width: 521px) and (max-height: 720px) {
+  .lizard-stage {
+    min-height: clamp(11.5rem, 38vh, 26rem);
+  }
 }
 
 /* ----- Large desktop: wider window, readable Thai in rankings / faculty ----- */
@@ -1013,7 +1026,7 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(760px, min(94vw, 52rem));
+    width: min(800px, min(100%, min(92vw, 54rem)));
   }
 
   .poptu-body {
@@ -1083,5 +1096,86 @@ body.poptu-active #root {
   }
   .taskbar-item {
     font-size: 14px;
+  }
+
+  .poptu-stage-logo {
+    width: clamp(3.25rem, 11vmin, 7.25rem);
+    right: max(10px, 5%);
+    bottom: max(8px, 4%);
+  }
+}
+
+/* ----- Extra-wide desktop: fluid max width + slightly larger type (521px+ only) ----- */
+@media (min-width: 1200px) {
+  .poptu {
+    --poptu-row-text: 19px;
+    --poptu-floater: calc(var(--poptu-row-text) * 1.65);
+    padding: max(20px, env(safe-area-inset-top, 0px)) max(32px, env(safe-area-inset-right, 0px))
+      var(--poptu-bottom-pad) max(32px, env(safe-area-inset-left, 0px));
+  }
+
+  .poptu-window {
+    width: min(880px, min(100%, min(88vw, 58rem)));
+  }
+
+  .poptu-body {
+    padding: 18px 22px;
+    gap: 14px;
+  }
+
+  .win-title {
+    font-size: 15px;
+  }
+
+  .rankings-body {
+    padding: 14px;
+    gap: 11px;
+  }
+  .ranking-row {
+    padding: 9px 16px;
+    gap: 15px;
+  }
+  .ranking-num {
+    width: 38px;
+    height: 38px;
+    font-size: 28px;
+  }
+
+  .lizard-stage {
+    min-height: clamp(16rem, 50vh, 40rem);
+  }
+
+  .lcd-wrap {
+    padding: 20px 14px 10px;
+  }
+  .lcd {
+    gap: 11px;
+    padding: 12px 18px;
+  }
+
+  .fieldset {
+    margin: 2px 10px 18px;
+    padding: 15px 16px;
+  }
+  .faculty-row {
+    gap: 16px;
+  }
+  .faculty-emoji {
+    width: 30px;
+    height: 30px;
+    font-size: 24px;
+  }
+
+  .poptu-stage-logo {
+    width: clamp(3.5rem, 10vmin, 8.5rem);
+    right: max(12px, 5.5%);
+    bottom: max(10px, 4.5%);
+  }
+
+  .poptu-taskbar {
+    padding: 16px 36px max(16px, env(safe-area-inset-bottom, 0px));
+  }
+  .poptu-taskbar-cluster {
+    gap: 44px;
   }
 }

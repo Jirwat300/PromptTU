@@ -22,6 +22,10 @@ function App() {
   // Reset scroll when navigating between pages (so the game doesn't start mid-page)
   useEffect(() => { window.scrollTo(0, 0) }, [page])
 
+  useEffect(() => {
+    document.title = page === 'poptu' ? 'PT — พร้อมธรรม' : 'พร้อมธรรม'
+  }, [page])
+
   return page === 'poptu' ? <PopTu /> : <Home />
 }
 
