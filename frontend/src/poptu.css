@@ -34,6 +34,8 @@ body.poptu-active {
   height: 100%;
   overflow: hidden;
   overflow-anchor: none;
+  /* Override :root FC Minimal so every POP TU subtree uses bundled Win95 fonts */
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 
 /* iOS Safari: make the React root fill the visual viewport (avoids “floating” layout vs Figma) */
@@ -41,6 +43,7 @@ html:has(body.poptu-active) {
   height: 100%;
   overflow: hidden;
   overflow-anchor: none;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 
 body.poptu-active #root {
@@ -85,6 +88,28 @@ body.poptu-active #root {
   justify-content: center;
 }
 
+/* Thai copy → 2005_iannnnnAMD; size ≈2× parent (English/digits stay MS Sans on .poptu) */
+.poptu [lang="th"],
+.poptu-modal-root [lang="th"] {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+}
+.poptu [lang="th"]:not(button):not(.w95-btn):not(select),
+.poptu-modal-root [lang="th"]:not(button):not(.w95-btn):not(select) {
+  font-size: 200%;
+  line-height: 1.25;
+}
+.poptu-modal-root select[lang="th"],
+.poptu select[lang="th"] {
+  font-size: 135%;
+  line-height: 1.3;
+}
+.poptu .w95-btn[lang="th"],
+.poptu-modal-root .w95-btn[lang="th"] {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: 162%;
+  line-height: 1.15;
+}
+
 /* ----- the main Win95 window ----- */
 .poptu-window {
   width: min(640px, 100%);
@@ -118,9 +143,10 @@ body.poptu-active #root {
 .win-titlebar.win-titlebar--inactive {
   background: linear-gradient(90deg, #808080 0%, #b5b5b5 100%);
 }
+/* English / Latin title bar text → MS Sans; Thai titles get [lang="th"] rules below */
 .poptu .win-title,
 .poptu-modal-root .win-title {
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 .win-title {
   flex: 1;
@@ -166,6 +192,7 @@ body.poptu-active #root {
   padding: 2px 6px;
   background: var(--win-face);
   border-bottom: 1px solid var(--win-shadow);
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 13px;
 }
 .win-menubar span u {
@@ -220,7 +247,7 @@ body.poptu-active #root {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: 'IannnnnAMD2005', 'Courier New', monospace;
+  font-family: 'MS Sans Serif', 'Courier New', monospace;
   font-size: 20px;
   font-weight: 700;
   color: var(--title-blue);
@@ -235,7 +262,7 @@ body.poptu-active #root {
   text-overflow: ellipsis;
 }
 .ranking-score {
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 13px;
   color: var(--title-blue);
   font-weight: 700;
@@ -394,7 +421,7 @@ body.poptu-active #root {
   left: 50%;
   top: 10%;
   transform: translateX(-50%);
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   color: var(--title-blue);
   font-weight: 700;
   font-size: 26px;
@@ -423,6 +450,7 @@ body.poptu-active #root {
   left: 10px;
   background: var(--win-face);
   padding: 0 6px;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 13px;
   font-weight: 700;
 }
@@ -501,6 +529,12 @@ body.poptu-active #root {
   padding: 12px;
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
+.poptu-modal-root select,
+.poptu-modal-root option,
+.poptu-modal-root textarea,
+.poptu-modal-root input {
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+}
 .win-dialog {
   width: min(360px, 100%);
   background: var(--win-face);
@@ -536,6 +570,7 @@ body.poptu-active #root {
   box-shadow: inset -2px -2px 0 rgba(0,0,0,0.3), inset 2px 2px 0 rgba(255,255,255,0.35);
 }
 .win-dialog-msg {
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 14px;
   line-height: 1.35;
 }
@@ -571,6 +606,7 @@ body.poptu-active #root {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 12px;
   font-weight: 700;
   padding: 2px 4px;
@@ -582,7 +618,7 @@ body.poptu-active #root {
   filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.4));
 }
 .taskbar-label {
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
 }
 

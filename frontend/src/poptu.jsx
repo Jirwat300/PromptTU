@@ -128,7 +128,7 @@ function FacultyPicker({ onPick }) {
     <div className="poptu-modal-root" role="dialog" aria-modal="true" aria-labelledby="fp-title">
       <div className="win-dialog" style={{ width: 'min(420px, 100%)' }}>
         <div className="win-titlebar">
-          <span className="win-title" id="fp-title">เลือกคณะก่อนเริ่มเล่น</span>
+          <span className="win-title" id="fp-title" lang="th">เลือกคณะก่อนเริ่มเล่น</span>
           <div className="win-title-btns">
             <button type="button" className="win-btn" aria-label="Minimise">_</button>
           </div>
@@ -142,11 +142,12 @@ function FacultyPicker({ onPick }) {
               style={{ width: 72, height: 'auto', flexShrink: 0 }}
               draggable={false}
             />
-            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.35 }}>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.35 }} lang="th">
               เลือกคณะของคุณเพื่อช่วยสะสมคะแนนให้คณะในตาราง Rankings
             </p>
           </div>
           <select
+            lang="th"
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
             style={{
@@ -162,7 +163,7 @@ function FacultyPicker({ onPick }) {
           </select>
         </div>
         <div className="win-dialog-actions">
-          <button type="button" className="w95-btn" onClick={() => onPick(selected)}>เริ่มเล่น</button>
+          <button type="button" className="w95-btn" lang="th" onClick={() => onPick(selected)}>เริ่มเล่น</button>
         </div>
       </div>
     </div>
@@ -183,7 +184,7 @@ function ErrorDialog({ onOk }) {
         </div>
         <div className="win-dialog-body">
           <div className="win-err-icon" aria-hidden="true">×</div>
-          <div className="win-dialog-msg">อย่าโกง ผมจับได้นะ !!!</div>
+          <div className="win-dialog-msg" lang="th">อย่าโกง ผมจับได้นะ !!!</div>
         </div>
         <div className="win-dialog-actions">
           <button type="button" className="w95-btn" onClick={onOk} autoFocus>OK</button>
@@ -437,13 +438,13 @@ export default function PopTu() {
               {rankings.map((r, i) => (
                 <div key={r.id} className="ranking-row">
                   <span className="ranking-num">{i + 1}</span>
-                  <span className="ranking-faculty" title={r.name}>{r.name}</span>
+                  <span className="ranking-faculty" title={r.name} lang="th">{r.name}</span>
                   <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
                 </div>
               ))}
               {rankings.length === 0 && (
                 <div className="ranking-row" style={{ opacity: 0.6 }}>
-                  <span className="ranking-faculty">กำลังโหลด…</span>
+                  <span className="ranking-faculty" lang="th">กำลังโหลด…</span>
                 </div>
               )}
             </div>
@@ -482,12 +483,13 @@ export default function PopTu() {
               <span className="faculty-emoji" aria-hidden="true">
                 {currentFaculty ? currentFaculty.emoji : '😀'}
               </span>
-              <span className="faculty-name">
+              <span className="faculty-name" lang="th">
                 {currentFaculty ? currentFaculty.name : 'ยังไม่ได้เลือกคณะ'}
               </span>
               <button
                 type="button"
                 className="w95-btn"
+                lang="th"
                 onClick={() => {
                   // flush any pending clicks for the previous faculty first
                   flushPending()
@@ -497,7 +499,7 @@ export default function PopTu() {
             </div>
           </fieldset>
 
-          <p className="poptu-credit">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
+          <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
         </div>
       </section>
 
