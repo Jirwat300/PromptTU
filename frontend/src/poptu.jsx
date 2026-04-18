@@ -6,6 +6,9 @@ import lizard3 from './assets/Lizard3.PNG'
 import lizard4 from './assets/Lizard4.PNG'
 import lizard5 from './assets/Lizard5.PNG'
 import lizard6 from './assets/Lizard6.PNG'
+import iconHome from './assets/icon-home.png'
+import iconHelp from './assets/icon-help.png'
+import iconShare from './assets/icon-share.png'
 
 /* =========================================================================
  * POP TU — Popcat-style clicker themed as a Windows 95 desktop app.
@@ -505,7 +508,7 @@ export default function PopTu() {
           onClick={goHome}
           title="ไปหน้าหลักเว็บพร้อมธรรม"
         >
-          <span className="taskbar-icon" aria-hidden="true">🖥️</span>
+          <img src={iconHome} alt="Home" className="taskbar-icon-img" draggable={false} />
           <span className="taskbar-label">Home</span>
         </button>
         <button
@@ -514,8 +517,8 @@ export default function PopTu() {
           onClick={() => alert('คลิกไปเรื่อย ๆ จนกว่าจะเมื่อย\nอย่าใช้ auto-click เด็ดขาด เดี๋ยวโดนจับ!')}
           title="วิธีเล่น"
         >
-          <span className="taskbar-icon" aria-hidden="true">❓</span>
-          <span className="taskbar-label">วิธีเล่น</span>
+          <img src={iconHelp} alt="Help" className="taskbar-icon-img" draggable={false} />
+          <span className="taskbar-label">????</span>
         </button>
         <button
           type="button"
@@ -533,7 +536,7 @@ export default function PopTu() {
           }}
           title="ข้อมูลสปอย์เว็บกับนโยบาย"
         >
-          <span className="taskbar-icon" aria-hidden="true">✨</span>
+          <img src={iconShare} alt="Share" className="taskbar-icon-img" draggable={false} />
           <span className="taskbar-label">Share</span>
         </button>
       </nav>
