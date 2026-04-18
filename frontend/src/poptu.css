@@ -247,35 +247,35 @@ body.poptu-active #root {
   flex-shrink: 0;
 }
 .rankings-body {
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .ranking-row {
   display: grid;
-  grid-template-columns: 36px 1fr auto;
+  grid-template-columns: 42px 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 4px 8px;
+  gap: 12px;
+  padding: 6px 10px;
   background: var(--win-face);
   border: 1px dashed #666;
 }
 .ranking-num {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: 'MS Sans Serif', 'Courier New', monospace;
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 700;
   color: var(--title-blue);
   background: #fff;
   border: 2px dashed var(--title-blue);
 }
 .ranking-faculty {
-  font-size: 13px;
+  font-size: 15px;
   color: #000;
   white-space: nowrap;
   overflow: hidden;
@@ -283,7 +283,7 @@ body.poptu-active #root {
 }
 .ranking-score {
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--title-blue);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -698,7 +698,7 @@ body.poptu-active #root {
     padding: 2px 3px 2px 5px;
   }
   .rankings-window .win-title {
-    font-size: 12px;
+    font-size: 13px;
   }
   .rankings-window .win-btn {
     width: 17px;
@@ -706,27 +706,27 @@ body.poptu-active #root {
     font-size: 9px;
   }
   .rankings-body {
-    padding: 5px 5px 6px;
-    gap: 4px;
+    padding: 6px 6px 7px;
+    gap: 5px;
   }
   .ranking-row {
-    grid-template-columns: 22px 1fr auto;
-    gap: 5px;
-    padding: 3px 6px;
+    grid-template-columns: 26px 1fr auto;
+    gap: 6px;
+    padding: 4px 7px;
   }
   .ranking-num {
-    width: 21px;
-    height: 21px;
-    font-size: 13px;
+    width: 24px;
+    height: 24px;
+    font-size: 15px;
     border-width: 1.5px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.2;
   }
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.2;
   }
 
@@ -829,28 +829,28 @@ body.poptu-active #root {
     padding: 2px 3px;
   }
   .rankings-window .win-title {
-    font-size: 11px;
+    font-size: 12px;
   }
   .rankings-body {
-    padding: 4px 4px 5px;
-    gap: 3px;
-  }
-  .ranking-row {
-    padding: 2px 5px;
+    padding: 5px 5px 6px;
     gap: 4px;
   }
+  .ranking-row {
+    padding: 3px 6px;
+    gap: 5px;
+  }
   .ranking-num {
-    width: 19px;
-    height: 19px;
-    font-size: 12px;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.15;
   }
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.15;
   }
   .lcd-wrap {
@@ -902,16 +902,16 @@ body.poptu-active #root {
   }
 
   .rankings-body {
-    padding: 10px;
-    gap: 7px;
+    padding: 12px;
+    gap: 9px;
   }
   .ranking-row {
-    padding: 5px 10px;
-    gap: 11px;
+    padding: 6px 12px;
+    gap: 13px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .lcd-wrap {
@@ -982,22 +982,22 @@ body.poptu-active #root {
   }
 
   .rankings-body {
-    padding: 12px;
-    gap: 8px;
+    padding: 14px;
+    gap: 10px;
   }
   .ranking-row {
-    padding: 6px 12px;
-    grid-template-columns: 40px 1fr auto;
-    gap: 14px;
+    padding: 8px 14px;
+    grid-template-columns: 46px 1fr auto;
+    gap: 16px;
   }
   .ranking-num {
-    width: 30px;
-    height: 30px;
-    font-size: 22px;
+    width: 36px;
+    height: 36px;
+    font-size: 25px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .lcd-wrap {
