@@ -1,0 +1,485 @@
+/* =========================================================
+   POP TU — retro Windows 95 themed clicker (Popcat-style)
+   Scoped under .poptu so it won't bleed into home.jsx
+   ========================================================= */
+
+/* ----- reset background when on POP TU page ----- */
+body.poptu-active {
+  background: #3a6ea5 !important; /* classic Win95 teal-blue desktop */
+}
+
+/* ----- page shell ----- */
+.poptu {
+  --win-face: #c0c0c0;
+  --win-shadow: #808080;
+  --win-dark: #000000;
+  --win-light: #ffffff;
+  --win-highlight: #dfdfdf;
+  --title-blue: #000080;
+  --title-blue-grad: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  --link: #0000ee;
+  --lcd-on: #2b5bff;
+  --lcd-off: rgba(43, 91, 255, 0.12);
+  --lcd-bezel: #101a3a;
+  --lcd-red: #ff2a2a;
+  --lcd-red-off: rgba(255, 42, 42, 0.12);
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #000;
+  font-family: 'Tahoma', 'MS Sans Serif', 'FC Minimal', system-ui, sans-serif;
+  font-size: 14px;
+  padding: 16px 12px 84px; /* bottom padding for taskbar */
+  display: flex;
+  justify-content: center;
+}
+
+/* ----- the main Win95 window ----- */
+.poptu-window {
+  width: min(560px, 100%);
+  background: var(--win-face);
+  border: 2px solid var(--win-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--win-light),
+    inset -1px -1px 0 var(--win-shadow),
+    inset 2px 2px 0 var(--win-highlight),
+    inset -2px -2px 0 var(--win-dark),
+    4px 4px 0 rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- title bar ----- */
+.win-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 3px 3px 6px;
+  background: var(--title-blue-grad);
+  color: #fff;
+  font-weight: 700;
+  user-select: none;
+}
+.win-titlebar.win-titlebar--inactive {
+  background: linear-gradient(90deg, #808080 0%, #b5b5b5 100%);
+}
+.win-title {
+  flex: 1;
+  letter-spacing: 0.02em;
+  font-size: 13px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.win-title-btns {
+  display: flex;
+  gap: 2px;
+}
+.win-btn {
+  width: 18px;
+  height: 16px;
+  background: var(--win-face);
+  border: 1px solid var(--win-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--win-light),
+    inset -1px -1px 0 var(--win-shadow);
+  color: #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0;
+  line-height: 1;
+  font-family: 'Tahoma', sans-serif;
+}
+.win-btn:active {
+  box-shadow:
+    inset -1px -1px 0 var(--win-light),
+    inset 1px 1px 0 var(--win-shadow);
+}
+
+/* ----- menu bar ----- */
+.win-menubar {
+  display: flex;
+  gap: 10px;
+  padding: 2px 6px;
+  background: var(--win-face);
+  border-bottom: 1px solid var(--win-shadow);
+  font-size: 13px;
+}
+.win-menubar span u {
+  text-decoration: underline;
+}
+
+/* ----- body inside main window ----- */
+.poptu-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ----- inner Rankings window ----- */
+.rankings-window {
+  background: var(--win-face);
+  border: 2px solid var(--win-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--win-light),
+    inset -1px -1px 0 var(--win-shadow);
+}
+.rankings-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ranking-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  background: var(--win-face);
+  border: 1px dashed #666;
+}
+.ranking-num {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--title-blue);
+  background: #fff;
+  border: 2px dashed var(--title-blue);
+}
+.ranking-faculty {
+  font-size: 13px;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ranking-score {
+  font-size: 13px;
+  color: var(--title-blue);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- LCD counter ----- */
+.lcd-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 18px 8px 10px;
+}
+.lcd {
+  display: inline-flex;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--lcd-bezel);
+  border: 3px solid #000;
+  box-shadow:
+    inset 2px 2px 0 #222,
+    inset -2px -2px 0 #000;
+}
+.lcd-digit {
+  width: 44px;
+  height: 64px;
+  position: relative;
+}
+/* 7-segment layout using absolutely positioned divs */
+.seg {
+  position: absolute;
+  background: var(--lcd-off);
+  transition: background 80ms linear;
+}
+.lcd.lcd--on .seg.on { background: var(--lcd-on); box-shadow: 0 0 6px var(--lcd-on); }
+.lcd.lcd--red .seg.on { background: var(--lcd-red); box-shadow: 0 0 6px var(--lcd-red); }
+.lcd.lcd--red .seg { background: var(--lcd-red-off); }
+
+/* segment positions — classic 7-seg */
+.seg.a { top: 0;        left: 4px;  right: 4px;  height: 6px; }
+.seg.b { top: 4px;      right: 0;   width: 6px;  height: 28px; }
+.seg.c { bottom: 4px;   right: 0;   width: 6px;  height: 28px; }
+.seg.d { bottom: 0;     left: 4px;  right: 4px;  height: 6px; }
+.seg.e { bottom: 4px;   left: 0;    width: 6px;  height: 28px; }
+.seg.f { top: 4px;      left: 0;    width: 6px;  height: 28px; }
+.seg.g { top: 29px;     left: 4px;  right: 4px;  height: 6px; }
+
+/* ----- lizard stage ----- */
+.lizard-stage {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 4px 8px 10px;
+  min-height: 240px;
+  user-select: none;
+}
+.lizard-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  width: min(280px, 80%);
+  transition: transform 70ms ease-out;
+}
+.lizard-btn:active {
+  transform: scale(0.97);
+}
+.lizard-btn svg,
+.lizard-btn .lizard-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+/* keep all poses the same visual height so celebrations don't make the
+   layout jump — aspect-ratio is consistent across the 6 PNG exports.   */
+.lizard-img {
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.lizard-pop-anchor {
+  display: block;
+  animation: lizard-pop 280ms ease-out;
+}
+@keyframes lizard-pop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* ----- lizard wrap + floating +1 on click ----- */
+.lizard-wrap {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+}
+.floater-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.floater {
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  transform: translateX(-50%);
+  color: var(--title-blue);
+  font-weight: 900;
+  font-size: 26px;
+  text-shadow: 2px 2px 0 #fff, 0 0 6px rgba(43,91,255,0.35);
+  pointer-events: none;
+  animation: floater-up 700ms ease-out forwards;
+}
+@keyframes floater-up {
+  0%   { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -80px); }
+}
+
+/* ----- Faculty group box ----- */
+.fieldset {
+  border: 1px solid var(--win-shadow);
+  box-shadow: inset -1px -1px 0 var(--win-light);
+  padding: 10px 10px 10px;
+  position: relative;
+  margin: 4px 4px 6px;
+}
+.fieldset > legend {
+  position: absolute;
+  top: -9px;
+  left: 10px;
+  background: var(--win-face);
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.faculty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.faculty-emoji {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.faculty-name {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ----- Win95 buttons ----- */
+.w95-btn {
+  font: inherit;
+  background: var(--win-face);
+  color: #000;
+  border: 1px solid var(--win-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--win-light),
+    inset -1px -1px 0 var(--win-shadow),
+    inset 2px 2px 0 var(--win-highlight),
+    inset -2px -2px 0 var(--win-dark);
+  padding: 4px 14px;
+  min-width: 72px;
+  cursor: pointer;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 13px;
+}
+.w95-btn:active,
+.w95-btn[aria-pressed="true"] {
+  box-shadow:
+    inset -1px -1px 0 var(--win-light),
+    inset 1px 1px 0 var(--win-shadow),
+    inset -2px -2px 0 var(--win-highlight),
+    inset 2px 2px 0 var(--win-dark);
+  padding: 5px 13px 3px 15px;
+}
+.w95-btn:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+/* ----- footer note ----- */
+.poptu-credit {
+  text-align: center;
+  font-size: 11px;
+  color: #444;
+  padding: 4px 0 0;
+}
+
+/* ----- error dialog ----- */
+.poptu-modal-root {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 12px;
+}
+.win-dialog {
+  width: min(360px, 100%);
+  background: var(--win-face);
+  border: 2px solid var(--win-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--win-light),
+    inset -1px -1px 0 var(--win-shadow),
+    inset 2px 2px 0 var(--win-highlight),
+    inset -2px -2px 0 var(--win-dark),
+    4px 4px 0 rgba(0, 0, 0, 0.4);
+  color: #000;
+  font-family: 'Tahoma', sans-serif;
+}
+.win-dialog-body {
+  padding: 18px 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.win-err-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e00;
+  border: 2px solid #800;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,0.3), inset 2px 2px 0 rgba(255,255,255,0.35);
+}
+.win-dialog-msg {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.win-dialog-actions {
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 14px;
+}
+
+/* ----- taskbar at the bottom of the page ----- */
+.poptu-taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0b3d91;
+  color: #fff;
+  padding: 10px 14px;
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-top: 2px solid #000;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.15);
+  font-family: 'Tahoma', sans-serif;
+}
+.taskbar-item {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 4px;
+}
+.taskbar-icon {
+  width: 36px;
+  height: 36px;
+  background: #c0c0c0;
+  border: 2px solid #000;
+  box-shadow:
+    inset 1px 1px 0 var(--win-light),
+    inset -1px -1px 0 var(--win-shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.taskbar-item--share .taskbar-icon { background: #7fd4ff; }
+.taskbar-item--help  .taskbar-icon { background: #ffea7f; }
+.taskbar-label { text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+
+/* ----- responsive tweaks ----- */
+@media (max-width: 520px) {
+  .lcd-digit { width: 32px; height: 48px; }
+  .seg.a, .seg.d { left: 3px; right: 3px; height: 4px; }
+  .seg.b, .seg.c { width: 4px; height: 20px; }
+  .seg.b { top: 3px; } .seg.c { bottom: 3px; }
+  .seg.e, .seg.f { width: 4px; height: 20px; }
+  .seg.e { bottom: 3px; } .seg.f { top: 3px; }
+  .seg.g { top: 22px; left: 3px; right: 3px; height: 4px; }
+
+  .ranking-row { grid-template-columns: 28px 1fr auto; gap: 6px; padding: 3px 6px; }
+  .ranking-num { width: 22px; height: 22px; font-size: 15px; border-width: 1.5px; }
+  .ranking-faculty, .ranking-score { font-size: 12px; }
+
+  .poptu-taskbar { gap: 8px; padding: 8px; }
+  .taskbar-icon { width: 30px; height: 30px; }
+  .taskbar-item { font-size: 10px; }
+}

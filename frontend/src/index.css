@@ -708,17 +708,19 @@ img {
 
   .navbar-inner {
     width: min(80rem, calc(100% - 4rem));
-    grid-template-columns: 2.5rem minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 1.2rem;
-    padding: 0.35rem 0.55rem 0.35rem 0;
-    border-radius: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
+    padding: 0.6rem 1.4rem 0.6rem 1rem;
+    border-radius: 999px;
+    background: rgba(10, 30, 90, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 30px rgba(3, 10, 40, 0.28);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .brand-logo {
-    width: 36px;
+    width: 34px;
   }
 
   .nav-links {
@@ -753,25 +755,39 @@ img {
   }
 
   .hero-heading {
-    top: clamp(4%, 7vh, 10%);
-    width: min(58rem, 96%);
+    top: clamp(5rem, 8vh, 8rem);
+    width: min(46rem, 70%);
   }
 
   .hero-title {
-    font-size: clamp(3.5rem, 5.2vw, 5.8rem);
-    line-height: 1.1;
+    font-size: clamp(2.4rem, 3.6vw, 4rem);
+    line-height: 1.08;
   }
 
   .hero-visual {
-    --candidate-photo-height: clamp(32rem, 65vw, 55rem);
-    --candidate-photo-side: clamp(-12rem, -8vw, -2rem);
-    --candidate-photo-bottom: clamp(-8rem, -8vw, -4rem);
+    --candidate-photo-height: clamp(24rem, 42vw, 38rem);
+    --candidate-photo-side: 0rem;
+    --candidate-photo-bottom: clamp(-4rem, -5vw, -2rem);
   }
 
-  .dao-spot,
-  .diw-spot {
-    width: min(48rem, 100%);
+  .dao-spot {
+    left: 0;
+    right: auto;
+    transform: none;
+    width: clamp(20rem, 30vw, 30rem);
     height: clamp(24rem, 60vw, 36rem);
+    align-items: flex-start;
+    padding-left: 0;
+  }
+
+  .diw-spot {
+    left: auto;
+    right: 0;
+    transform: none;
+    width: clamp(20rem, 30vw, 30rem);
+    height: clamp(24rem, 60vw, 36rem);
+    align-items: flex-end;
+    padding-right: 0;
   }
 
   .hero-candidate-dim {
