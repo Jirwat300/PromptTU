@@ -100,14 +100,36 @@ body.poptu-active #root {
 }
 .poptu-modal-root select[lang="th"],
 .poptu select[lang="th"] {
-  font-size: 135%;
-  line-height: 1.3;
+  font-size: 172%;
+  line-height: 1.35;
+}
+
+/* Faculty picker: intro + dropdown (inline font-size used to override Thai rules) */
+.poptu-modal-root .poptu-faculty-blurb {
+  margin: 0;
+  line-height: 1.35;
+}
+.poptu-modal-root .poptu-faculty-select[lang="th"] {
+  padding: 6px 8px;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+.poptu-modal-root .poptu-faculty-select option {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
 }
 .poptu .w95-btn[lang="th"],
 .poptu-modal-root .w95-btn[lang="th"] {
   font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 162%;
   line-height: 1.15;
+}
+
+/* +1 floater: Latin digits — always bundled MS Sans Bold, never Thai face */
+.poptu .floater-layer .floater {
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-synthesis: weight;
 }
 
 /* ----- the main Win95 window ----- */
@@ -421,9 +443,7 @@ body.poptu-active #root {
   left: 50%;
   top: 10%;
   transform: translateX(-50%);
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   color: var(--title-blue);
-  font-weight: 700;
   font-size: 26px;
   text-shadow: 2px 2px 0 #fff, 0 0 6px rgba(43,91,255,0.35);
   pointer-events: none;
@@ -586,6 +606,7 @@ body.poptu-active #root {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 10;
   background: #0b3d91;
   color: #fff;
   padding: 10px 14px max(10px, env(safe-area-inset-bottom, 0px));
@@ -627,7 +648,8 @@ body.poptu-active #root {
 /* Mobile: fit one screen without page scroll — do not change .lizard-stage / .lizard-img (mascot size). */
 @media (max-width: 520px) {
   .poptu {
-    --poptu-bottom-pad: calc(46px + env(safe-area-inset-bottom, 0px));
+    /* Taskbar ~52px + Thai credit line(s); keeps credit above fixed bar without touching .lizard-stage rules */
+    --poptu-bottom-pad: calc(72px + env(safe-area-inset-bottom, 0px));
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
   }
@@ -713,6 +735,19 @@ body.poptu-active #root {
   .faculty-name {
     font-size: 11px;
   }
+  /* Thai faculty label: base .faculty-name 11px is for Latin; Thai uses AMD + larger % */
+  .poptu .fieldset .faculty-name[lang="th"] {
+    font-size: 230%;
+    line-height: 1.2;
+  }
+  .poptu-modal-root .poptu-faculty-blurb[lang="th"] {
+    font-size: 215%;
+    line-height: 1.3;
+  }
+  .poptu-modal-root .poptu-faculty-select[lang="th"] {
+    font-size: 188%;
+    min-height: 44px;
+  }
   .w95-btn {
     padding: 3px 10px;
     font-size: 12px;
@@ -722,8 +757,9 @@ body.poptu-active #root {
   .poptu-credit {
     font-size: 10px;
     line-height: 1.25;
-    padding: 0 6px 3px;
-    margin-top: -5px;
+    padding: 0 6px 2px;
+    margin-top: -4px;
+    margin-bottom: 2px;
   }
 
   .poptu-taskbar {
@@ -764,8 +800,9 @@ body.poptu-active #root {
   }
   .poptu-credit {
     font-size: 9px;
-    padding: 0 4px 3px;
-    margin-top: -4px;
+    padding: 0 4px 2px;
+    margin-top: -3px;
+    margin-bottom: 2px;
   }
 }
 

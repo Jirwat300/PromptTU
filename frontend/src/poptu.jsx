@@ -142,16 +142,17 @@ function FacultyPicker({ onPick }) {
               style={{ width: 72, height: 'auto', flexShrink: 0 }}
               draggable={false}
             />
-            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.35 }} lang="th">
+            <p className="poptu-faculty-blurb" lang="th">
               เลือกคณะของคุณเพื่อช่วยสะสมคะแนนให้คณะในตาราง Rankings
             </p>
           </div>
           <select
             lang="th"
+            className="poptu-faculty-select"
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
             style={{
-              width: '100%', fontSize: 13, padding: '4px 6px',
+              width: '100%',
               border: '2px solid #000',
               boxShadow: 'inset 1px 1px 0 #808080, inset -1px -1px 0 #fff',
               background: '#fff',
@@ -470,7 +471,7 @@ export default function PopTu() {
               </button>
               <div className="floater-layer" aria-hidden="true">
                 {floaters.map((f) => (
-                  <span key={f.id} className="floater">+1</span>
+                  <span key={f.id} className="floater" lang="en" translate="no">+1</span>
                 ))}
               </div>
             </div>
