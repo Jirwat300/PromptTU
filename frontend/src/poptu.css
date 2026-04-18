@@ -18,9 +18,10 @@ body.poptu-active {
   --title-blue: #000080;
   --title-blue-grad: linear-gradient(90deg, #000080 0%, #1084d0 100%);
   --link: #0000ee;
-  --lcd-on: #2b5bff;
-  --lcd-off: rgba(43, 91, 255, 0.12);
-  --lcd-bezel: #101a3a;
+  --lcd-on: #0134b9;
+  --lcd-off-bg: #ffffff;
+  --lcd-off-fg: #91a2cd;
+  --lcd-bezel: #ffffff;
   --lcd-red: #ff2a2a;
   --lcd-red-off: rgba(255, 42, 42, 0.12);
 
@@ -185,7 +186,7 @@ body.poptu-active {
 }
 .lcd {
   display: inline-flex;
-  gap: 6px;
+  gap: 8px;
   padding: 10px 14px;
   background: var(--lcd-bezel);
   border: 3px solid #000;
@@ -193,29 +194,61 @@ body.poptu-active {
     inset 2px 2px 0 #222,
     inset -2px -2px 0 #000;
 }
+.lcd.lcd--red {
+  background: #110000;
+}
+.lcd.lcd--red .seg {
+  background: var(--lcd-red-off);
+}
+.lcd.lcd--red .seg.on {
+  background: var(--lcd-red);
+}
+
 .lcd-digit {
   width: 44px;
   height: 64px;
   position: relative;
 }
+
 /* 7-segment layout using absolutely positioned divs */
 .seg {
   position: absolute;
-  background: var(--lcd-off);
-  transition: background 80ms linear;
 }
-.lcd.lcd--on .seg.on { background: var(--lcd-on); box-shadow: 0 0 6px var(--lcd-on); }
-.lcd.lcd--red .seg.on { background: var(--lcd-red); box-shadow: 0 0 6px var(--lcd-red); }
-.lcd.lcd--red .seg { background: var(--lcd-red-off); }
+/* Unlit (checkerboard pattern) */
+.lcd.lcd--on .seg {
+  background-color: var(--lcd-off-bg);
+  background-image: 
+    linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg)),
+    linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg));
+  background-size: 4px 4px;
+  background-position: 0 0, 2px 2px;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+/* Lit (solid blue) */
+.lcd.lcd--on .seg.on {
+  background-image: none;
+  background-color: var(--lcd-on);
+}
 
-/* segment positions — classic 7-seg */
-.seg.a { top: 0;        left: 4px;  right: 4px;  height: 6px; }
-.seg.b { top: 4px;      right: 0;   width: 6px;  height: 28px; }
-.seg.c { bottom: 4px;   right: 0;   width: 6px;  height: 28px; }
-.seg.d { bottom: 0;     left: 4px;  right: 4px;  height: 6px; }
-.seg.e { bottom: 4px;   left: 0;    width: 6px;  height: 28px; }
-.seg.f { top: 4px;      left: 0;    width: 6px;  height: 28px; }
-.seg.g { top: 29px;     left: 4px;  right: 4px;  height: 6px; }
+/* Horizontal segments (a, d, g) */
+.seg.horiz {
+  left: 6px; right: 6px; height: 10px;
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 50%, calc(100% - 5px) 100%, 5px 100%, 0 50%);
+}
+.seg.a { top: 0; }
+.seg.g { top: 27px; }
+.seg.d { bottom: 0; }
+
+/* Vertical segments (b, c, e, f) */
+.seg.vert {
+  width: 10px; height: 26px;
+  clip-path: polygon(0 5px, 50% 0, 100% 5px, 100% calc(100% - 5px), 50% 100%, 0 calc(100% - 5px));
+}
+.seg.b { top: 3px; right: 0; }
+.seg.f { top: 3px; left: 0; }
+.seg.c { bottom: 3px; right: 0; }
+.seg.e { bottom: 3px; left: 0; }
 
 /* ----- lizard stage ----- */
 .lizard-stage {
@@ -468,12 +501,13 @@ body.poptu-active {
 /* ----- responsive tweaks ----- */
 @media (max-width: 520px) {
   .lcd-digit { width: 32px; height: 48px; }
-  .seg.a, .seg.d { left: 3px; right: 3px; height: 4px; }
-  .seg.b, .seg.c { width: 4px; height: 20px; }
-  .seg.b { top: 3px; } .seg.c { bottom: 3px; }
-  .seg.e, .seg.f { width: 4px; height: 20px; }
-  .seg.e { bottom: 3px; } .seg.f { top: 3px; }
-  .seg.g { top: 22px; left: 3px; right: 3px; height: 4px; }
+  .seg.horiz { left: 4px; right: 4px; height: 8px; clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%); }
+  .seg.vert  { width: 8px; height: 20px; clip-path: polygon(0 4px, 50% 0, 100% 4px, 100% calc(100% - 4px), 50% 100%, 0 calc(100% - 4px)); }
+  .seg.a { top: 0; }
+  .seg.g { top: 20px; }
+  .seg.d { bottom: 0; }
+  .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
+  .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
   .ranking-row { grid-template-columns: 28px 1fr auto; gap: 6px; padding: 3px 6px; }
   .ranking-num { width: 22px; height: 22px; font-size: 15px; border-width: 1.5px; }

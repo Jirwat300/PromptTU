@@ -101,9 +101,13 @@ function LcdDigit({ char }) {
   const lit = SEG_MAP[char] || []
   return (
     <div className="lcd-digit" aria-hidden="true">
-      {['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((seg) => (
-        <div key={seg} className={`seg ${seg}${lit.includes(seg) ? ' on' : ''}`} />
-      ))}
+      {['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((seg) => {
+        const isHoriz = seg === 'a' || seg === 'd' || seg === 'g'
+        const dirClass = isHoriz ? 'horiz' : 'vert'
+        return (
+          <div key={seg} className={`seg ${seg} ${dirClass}${lit.includes(seg) ? ' on' : ''}`} />
+        )
+      })}
     </div>
   )
 }
