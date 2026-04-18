@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Home from './home.jsx'
 import PopTu from './poptu.jsx'
 
@@ -13,6 +13,11 @@ function getPage() {
 function App() {
   const [page, setPage] = useState(getPage)
 
+  /** Ensures Home renders even if hashchange does not fire (some mobile WebViews). */
+  const navigateHome = useCallback(() => {
+    setPage('home')
+  }, [])
+
   useEffect(() => {
     const onHash = () => setPage(getPage())
     window.addEventListener('hashchange', onHash)
@@ -26,7 +31,7 @@ function App() {
     document.title = page === 'poptu' ? 'พร้อมธรรม · POPTU เกม' : 'พร้อมธรรม'
   }, [page])
 
-  return page === 'poptu' ? <PopTu /> : <Home />
+  return page === 'poptu' ? <PopTu onNavigateHome={navigateHome} /> : <Home />
 }
 
 export default App
