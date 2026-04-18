@@ -510,7 +510,7 @@ body.poptu-active #root {
 /* ----- Faculty group box ----- */
 .fieldset {
   background: #fff;
-  border: 1px solid var(--win-shadow);
+  border: 2px solid var(--win-dark);
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
   position: relative;
