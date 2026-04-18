@@ -8,7 +8,6 @@ import lizard5 from './assets/Lizard5.PNG'
 import iconHome from './assets/computer_icon.png'
 import iconHelp from './assets/question_icon.png'
 import iconShare from './assets/internet_icon.png'
-import ptLogo from './assets/pt-logo-dpi.svg'
 
 /* =========================================================================
  * PT — Popcat-style clicker themed as a Windows 95 desktop app.
@@ -60,6 +59,8 @@ const JITTER_MIN = 0.08     // stdev/mean threshold. Humans jitter ≳ 0.15
  *  Fallback: same origin `/api`. If the frontend is hosted separately from
  *  the backend, set VITE_API_URL to the backend's Vercel URL.             */
 const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
+/** PT mark on lizard stage — from public/ so URL respects Vite base (Vercel-safe) */
+const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.png`
 const RANKING_REFRESH_MS = 4000   // how often we re-poll the leaderboard
 const POP_FLUSH_MS = 800          // batch window for /api/ranking/pop
 
@@ -494,7 +495,7 @@ export default function PopTu() {
             </div>
             <img
               className="poptu-stage-logo"
-              src={ptLogo}
+              src={STAGE_PT_LOGO}
               alt=""
               decoding="async"
               aria-hidden="true"
@@ -569,7 +570,7 @@ export default function PopTu() {
               const url = window.location.href
               try {
                 if (navigator.share) {
-                  await navigator.share({ title: 'PT — พร้อมธรรม', url })
+                  await navigator.share({ title: 'พร้อมธรรม · PT เกม', url })
                 } else {
                   await navigator.clipboard.writeText(url)
                   alert('คัดลอกลิงก์แล้ว — ไปส่งให้เพื่อนได้เลย')

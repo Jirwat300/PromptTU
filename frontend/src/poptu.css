@@ -421,12 +421,12 @@ body.poptu-active #root {
   bottom: max(4px, 3%);
   width: clamp(2.75rem, 15vmin, 6.25rem);
   height: auto;
-  aspect-ratio: 2917 / 1814;
+  aspect-ratio: 1;
   object-fit: contain;
   object-position: center bottom;
   pointer-events: none;
-  z-index: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+  /* Above full-bleed .lizard-wrap so the mark stays visible (wrap stays clickable below) */
+  z-index: 5;
 }
 .lizard-wrap {
   position: relative;
@@ -931,11 +931,11 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(680px, min(100%, 94vw));
+    width: min(760px, min(100%, 96vw));
   }
 
   .poptu-body {
-    padding: 12px;
+    padding: 12px 12px 18px;
     gap: 10px;
   }
 
@@ -999,12 +999,14 @@ body.poptu-active #root {
 
   .lizard-stage {
     min-height: clamp(13.5rem, 42vh, 30rem);
+    padding-bottom: 10px;
+    overflow: hidden;
   }
 
   .poptu-stage-logo {
     width: clamp(3rem, 12vmin, 6.5rem);
     right: max(8px, 4.5%);
-    bottom: max(6px, 3.5%);
+    bottom: max(10px, 3.5%);
   }
 }
 
@@ -1026,11 +1028,11 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(800px, min(100%, min(92vw, 54rem)));
+    width: min(960px, min(100%, min(96vw, 58rem)));
   }
 
   .poptu-body {
-    padding: 16px 18px;
+    padding: 16px 18px 22px;
     gap: 12px;
   }
 
@@ -1050,6 +1052,7 @@ body.poptu-active #root {
   }
   .lizard-stage {
     min-height: clamp(15rem, 48vh, 36rem);
+    padding-bottom: 12px;
   }
 
   .lcd-wrap {
@@ -1115,11 +1118,11 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(880px, min(100%, min(88vw, 58rem)));
+    width: min(1040px, min(100%, min(94vw, 62rem)));
   }
 
   .poptu-body {
-    padding: 18px 22px;
+    padding: 18px 22px 26px;
     gap: 14px;
   }
 
@@ -1143,6 +1146,7 @@ body.poptu-active #root {
 
   .lizard-stage {
     min-height: clamp(16rem, 50vh, 40rem);
+    padding-bottom: 14px;
   }
 
   .lcd-wrap {

@@ -23,7 +23,7 @@ function App() {
   useEffect(() => { window.scrollTo(0, 0) }, [page])
 
   useEffect(() => {
-    document.title = page === 'poptu' ? 'PT — พร้อมธรรม' : 'พร้อมธรรม'
+    document.title = page === 'poptu' ? 'พร้อมธรรม · PT เกม' : 'พร้อมธรรม'
   }, [page])
 
   return page === 'poptu' ? <PopTu /> : <Home />
