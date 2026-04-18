@@ -3,6 +3,30 @@
    Scoped under .poptu so it won't bleed into home.jsx
    ========================================================= */
 
+@font-face {
+  font-family: 'MS Sans Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/MS Sans Serif.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'MS Sans Serif';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/MS Sans Serif Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'IannnnnAMD2005';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/2005_iannnnnAMD.ttf') format('truetype');
+}
+
 /* ----- reset background when on POP TU page ----- */
 body.poptu-active {
   background: #3a6ea5 !important; /* classic Win95 teal-blue desktop */
@@ -53,7 +77,7 @@ body.poptu-active #root {
   overflow-anchor: none;
   overscroll-behavior: none;
   color: #000;
-  font-family: 'Tahoma', 'MS Sans Serif', 'FC Minimal', system-ui, sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 14px;
   padding: max(10px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px))
     var(--poptu-bottom-pad) max(8px, env(safe-area-inset-left, 0px));
@@ -94,6 +118,10 @@ body.poptu-active #root {
 .win-titlebar.win-titlebar--inactive {
   background: linear-gradient(90deg, #808080 0%, #b5b5b5 100%);
 }
+.poptu .win-title,
+.poptu-modal-root .win-title {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+}
 .win-title {
   flex: 1;
   letter-spacing: 0.02em;
@@ -123,7 +151,7 @@ body.poptu-active #root {
   font-weight: 700;
   padding: 0;
   line-height: 1;
-  font-family: 'Tahoma', sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 .win-btn:active {
   box-shadow:
@@ -192,9 +220,9 @@ body.poptu-active #root {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Courier New', monospace;
+  font-family: 'IannnnnAMD2005', 'Courier New', monospace;
   font-size: 20px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--title-blue);
   background: #fff;
   border: 2px dashed var(--title-blue);
@@ -207,6 +235,7 @@ body.poptu-active #root {
   text-overflow: ellipsis;
 }
 .ranking-score {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 13px;
   color: var(--title-blue);
   font-weight: 700;
@@ -365,8 +394,9 @@ body.poptu-active #root {
   left: 50%;
   top: 10%;
   transform: translateX(-50%);
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
   color: var(--title-blue);
-  font-weight: 900;
+  font-weight: 700;
   font-size: 26px;
   text-shadow: 2px 2px 0 #fff, 0 0 6px rgba(43,91,255,0.35);
   pointer-events: none;
@@ -431,7 +461,7 @@ body.poptu-active #root {
   padding: 4px 14px;
   min-width: 72px;
   cursor: pointer;
-  font-family: 'Tahoma', sans-serif;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 13px;
 }
 .w95-btn:active,
@@ -469,6 +499,7 @@ body.poptu-active #root {
   justify-content: center;
   z-index: 50;
   padding: 12px;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 .win-dialog {
   width: min(360px, 100%);
@@ -481,7 +512,7 @@ body.poptu-active #root {
     inset -2px -2px 0 var(--win-dark),
     4px 4px 0 rgba(0, 0, 0, 0.4);
   color: #000;
-  font-family: 'Tahoma', sans-serif;
+  font-family: inherit;
 }
 .win-dialog-body {
   padding: 18px 16px;
@@ -529,7 +560,7 @@ body.poptu-active #root {
   justify-content: space-between;
   border-top: 2px solid #000;
   box-shadow: inset 0 2px 0 rgba(255,255,255,0.15);
-  font-family: 'Tahoma', sans-serif;
+  font-family: inherit;
 }
 .taskbar-item {
   background: transparent;
@@ -550,7 +581,10 @@ body.poptu-active #root {
   object-fit: contain;
   filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.4));
 }
-.taskbar-label { text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+.taskbar-label {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+}
 
 /* ----- responsive tweaks ----- */
 

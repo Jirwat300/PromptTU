@@ -5,9 +5,9 @@ import lizard2 from './assets/Lizard2.PNG'
 import lizard3 from './assets/Lizard3.PNG'
 import lizard4 from './assets/Lizard4.PNG'
 import lizard5 from './assets/Lizard5.PNG'
-import iconHome from './assets/icon-home.png'
-import iconHelp from './assets/icon-help.png'
-import iconShare from './assets/icon-share.png'
+import iconHome from './assets/computer_icon.png'
+import iconHelp from './assets/question_icon.png'
+import iconShare from './assets/internet_icon.png'
 
 /* =========================================================================
  * POP TU — Popcat-style clicker themed as a Windows 95 desktop app.
