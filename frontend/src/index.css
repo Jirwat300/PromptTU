@@ -119,12 +119,12 @@ img {
   width: min(44rem, calc(100% - 1rem));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.85rem minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 0.6rem;
   padding: 0.35rem 0.55rem;
   background: #d9e6ff;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(20, 56, 168, 0.12);
   border-radius: 0.55rem;
   box-shadow: 0 8px 24px rgba(6, 18, 70, 0.18);
 }
@@ -132,13 +132,17 @@ img {
 .brand {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
+  justify-content: flex-start;
+  width: auto;
+  flex-shrink: 0;
 }
 
+/* PT mark (pt-logo-dpi.svg) — wide aspect; fill baked as #1438a8 in asset */
 .brand-logo {
-  width: 24px;
-  height: auto;
+  display: block;
+  height: 1.32rem;
+  width: auto;
+  max-width: 4.85rem;
 }
 
 .nav-links {
@@ -160,7 +164,7 @@ img {
 }
 
 .nav-links a {
-  color: #12358d;
+  color: #1438a8;
   font-size: clamp(0.72rem, 3.1vw, 0.82rem);
   font-weight: 700;
   line-height: 1.15;
@@ -170,7 +174,7 @@ img {
 }
 
 .nav-links a:hover {
-  color: #0a2e95;
+  color: #0f2d8f;
 }
 
 .vote-button {
@@ -720,7 +724,8 @@ img {
   }
 
   .brand-logo {
-    width: 34px;
+    height: 1.55rem;
+    max-width: 5.5rem;
   }
 
   .nav-links {

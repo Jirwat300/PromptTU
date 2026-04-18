@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import logo from './assets/logo.png'
+import ptLogo from './assets/pt-logo-dpi.svg'
 import daoImage from './assets/Dao.png'
 import diwImage from './assets/Diw.png'
 
@@ -103,8 +103,8 @@ function Home() {
       <section id="home" className="hero-shell">
         <header className="navbar">
           <nav className="navbar-inner" aria-label="Main navigation">
-            <a className="brand" href="#home" aria-label="Party home">
-              <img src={logo} alt="Party logo" className="brand-logo" />
+            <a className="brand" href="#home" aria-label="หน้าแรก">
+              <img src={ptLogo} alt="พรรคพร้อมธรรม" className="brand-logo" decoding="async" />
             </a>
 
             <div className="nav-links">

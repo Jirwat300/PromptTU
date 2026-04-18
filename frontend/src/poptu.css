@@ -46,18 +46,6 @@ html:has(body.poptu-active) {
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
 }
 
-/* Mobile: let fixed credit (below) paint past overflow — narrow screens need 2-line attribution */
-@media (max-width: 520px) {
-  html:has(body.poptu-active) {
-    overflow-x: hidden;
-    overflow-y: visible;
-  }
-  body.poptu-active {
-    overflow-x: hidden;
-    overflow-y: visible;
-  }
-}
-
 body.poptu-active #root {
   display: flex;
   flex-direction: column;
@@ -546,15 +534,20 @@ body.poptu-active #root {
   outline-offset: -4px;
 }
 
-/* ----- footer note (under Faculty) ----- */
+/* ----- credit (above Faculty row, inside white body) ----- */
 .poptu-credit {
   text-align: center;
   font-size: 11px;
   color: #333;
-  line-height: 1.3;
-  padding: 0 8px 4px;
-  margin: -4px 0 0;
+  line-height: 1.35;
+  padding: 0 8px;
+  margin: 2px 0 0;
   flex-shrink: 0;
+}
+/* Thai attribution: cap size so [lang=th] 200% does not dominate between lizard and Faculty */
+.poptu .poptu-credit[lang="th"] {
+  font-size: clamp(10px, 2.4vw, 12px);
+  line-height: 1.35;
 }
 
 /* ----- error dialog ----- */
@@ -673,25 +666,10 @@ body.poptu-active #root {
 
 /* Mobile: fit one screen without page scroll — do not change .lizard-stage / .lizard-img (mascot size). */
 @media (max-width: 520px) {
-  /*
-   * Fixed .poptu-credit must not sit under overflow:hidden ancestors (clips to ~1 line — only “สื่อดิจิทัล…” visible).
-   * Keep horizontal containment; lizard stays clipped by .lizard-stage { overflow:hidden }.
-   */
   .poptu {
-    overflow-x: hidden;
-    overflow-y: visible;
-    /* Taskbar + 2-line Thai credit above it */
-    --poptu-bottom-pad: calc(76px + env(safe-area-inset-bottom, 0px));
+    --poptu-bottom-pad: calc(72px + env(safe-area-inset-bottom, 0px));
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
-  }
-  .poptu-window {
-    overflow-x: hidden;
-    overflow-y: visible;
-  }
-  .poptu-body {
-    overflow-x: hidden;
-    overflow-y: visible;
   }
 
   /* Saves one chrome row; File/Edit bar is decorative on this route */
@@ -754,8 +732,9 @@ body.poptu-active #root {
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
+  /* Credit sits above — keep a hair of space so negative margin does not overlap text */
   .fieldset {
-    margin: -6px 2px 2px;
+    margin: -4px 2px 2px;
     padding: 6px 8px 6px;
   }
   .fieldset > legend {
@@ -794,34 +773,12 @@ body.poptu-active #root {
     min-width: 64px;
   }
 
-  /*
-   * Credit was last in .poptu-body (overflow:hidden) + tall min-height on .lizard-stage,
-   * so it got clipped on short phones. Fixed above taskbar: out of flex flow, no change to .lizard-stage / .lizard-img.
-   */
   .poptu .poptu-credit {
-    position: fixed;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    width: min(640px, calc(100vw - 12px));
-    max-width: calc(100vw - 12px);
-    box-sizing: border-box;
-    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
-    z-index: 8;
-    margin: 0;
-    padding: 4px 10px 5px;
-    color: rgba(255, 255, 255, 0.96);
-    text-shadow:
-      0 0 3px rgba(0, 0, 0, 0.9),
-      0 1px 0 rgba(0, 0, 0, 0.55);
-    line-height: 1.3;
-    white-space: normal;
-    overflow: visible;
-    word-break: break-word;
-    pointer-events: none;
+    margin: 0 0 4px;
+    padding: 0 6px;
   }
   .poptu .poptu-credit[lang="th"] {
-    font-size: clamp(10px, 2.85vw, 13px);
+    font-size: clamp(9px, 2.65vw, 11px);
     line-height: 1.32;
   }
 
@@ -867,8 +824,8 @@ body.poptu-active #root {
     padding: 5px 6px;
   }
   .poptu .poptu-credit[lang="th"] {
-    font-size: clamp(10px, 2.9vw, 13px);
-    padding: 3px 8px 4px;
+    font-size: clamp(9px, 2.5vw, 10.5px);
+    padding: 0 4px;
   }
 }
 
@@ -933,10 +890,11 @@ body.poptu-active #root {
     padding: 5px 16px;
   }
 
-  .poptu-credit {
+  .poptu .poptu-credit[lang="th"] {
     margin-top: 0;
-    padding: 6px 12px 10px;
+    padding: 6px 12px 8px;
     font-size: 12px;
+    line-height: 1.35;
   }
 
   .poptu-taskbar {
@@ -1027,9 +985,10 @@ body.poptu-active #root {
     min-width: 80px;
   }
 
-  .poptu-credit {
+  .poptu .poptu-credit[lang="th"] {
     font-size: 13px;
-    padding: 8px 16px 12px;
+    padding: 8px 16px 10px;
+    line-height: 1.35;
   }
 
   .poptu-taskbar {

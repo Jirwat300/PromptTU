@@ -489,6 +489,8 @@ export default function PopTu() {
             </div>
           </div>
 
+          <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
+
           {/* Faculty fieldset */}
           <fieldset className="fieldset">
             <legend>Faculty</legend>
@@ -511,8 +513,6 @@ export default function PopTu() {
               >เปลี่ยน</button>
             </div>
           </fieldset>
-
-          <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>
         </div>
       </section>
 
