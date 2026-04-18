@@ -690,44 +690,44 @@ body.poptu-active #root {
     gap: 4px;
   }
 
+  /* Rankings: larger than ultra-compact pass — Faculty still full (space from flex lizard area) */
   .rankings-window {
-    border-width: 1px;
+    border-width: 2px;
   }
   .rankings-window .win-titlebar {
-    padding: 1px 2px 1px 3px;
+    padding: 2px 3px 2px 5px;
   }
   .rankings-window .win-title {
-    font-size: 10px;
+    font-size: 12px;
   }
   .rankings-window .win-btn {
-    width: 15px;
-    height: 13px;
-    font-size: 8px;
+    width: 17px;
+    height: 15px;
+    font-size: 9px;
   }
   .rankings-body {
-    padding: 2px 3px 3px;
-    gap: 2px;
+    padding: 5px 5px 6px;
+    gap: 4px;
   }
   .ranking-row {
-    grid-template-columns: 18px 1fr auto;
-    gap: 3px;
-    padding: 1px 4px;
+    grid-template-columns: 22px 1fr auto;
+    gap: 5px;
+    padding: 3px 6px;
   }
   .ranking-num {
-    width: 17px;
-    height: 17px;
-    font-size: 11px;
-    border-width: 1px;
+    width: 21px;
+    height: 21px;
+    font-size: 13px;
+    border-width: 1.5px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 10px;
-    line-height: 1.15;
+    font-size: 11px;
+    line-height: 1.2;
   }
-  /* Cap Thai leaderboard names — beats global [lang=th] 200% so Rankings stays short */
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 10px;
-    line-height: 1.15;
+    font-size: 11px;
+    line-height: 1.2;
   }
 
   /* LCD digits slightly smaller on mobile but still prominent */
@@ -825,26 +825,33 @@ body.poptu-active #root {
     padding: 4px 5px 16px;
     gap: 3px;
   }
+  .rankings-window .win-titlebar {
+    padding: 2px 3px;
+  }
+  .rankings-window .win-title {
+    font-size: 11px;
+  }
   .rankings-body {
-    padding: 2px;
-    gap: 1px;
+    padding: 4px 4px 5px;
+    gap: 3px;
   }
   .ranking-row {
-    padding: 0 3px;
-    gap: 2px;
+    padding: 2px 5px;
+    gap: 4px;
   }
   .ranking-num {
-    width: 16px;
-    height: 16px;
-    font-size: 10px;
+    width: 19px;
+    height: 19px;
+    font-size: 12px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 9px;
+    font-size: 10px;
+    line-height: 1.15;
   }
   .poptu .rankings-window .ranking-faculty[lang="th"] {
-    font-size: 9px;
-    line-height: 1.1;
+    font-size: 10px;
+    line-height: 1.15;
   }
   .lcd-wrap {
     padding: 3px 2px 1px;
