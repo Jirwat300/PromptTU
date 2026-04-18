@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
-import ComingSoon from './comingsoon.jsx'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import PopTu from './poptu.jsx'
+
+const ComingSoon = lazy(() => import('./comingsoon.jsx'))
 
 // Hash-based page switcher: default + `#poptu` → game; `#comingsoon` → teaser.
 // Home (`home.jsx`) is off for now — re-enable by importing Home and branching in getPage/render.
@@ -33,7 +34,13 @@ function App() {
     else document.title = 'พร้อมธรรม · POPTU เกม'
   }, [page])
 
-  if (page === 'comingsoon') return <ComingSoon />
+  if (page === 'comingsoon') {
+    return (
+      <Suspense fallback={null}>
+        <ComingSoon />
+      </Suspense>
+    )
+  }
   return <PopTu onNavigateToComingSoon={navigateToComingSoon} />
 }
 

@@ -1,0 +1,28 @@
+/* Minimal global shell for POPTU-first visits — avoids loading full index.css (~home marketing). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  /* Win95 desktop teal — matches .poptu-active before JS runs */
+  background: #3a6ea5;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}

@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './app-shell.css'
 import App from './App.jsx'
 
 /* Favicon from /public — respect Vite base so tab icon works on Vercel/subpaths */

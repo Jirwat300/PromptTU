@@ -1,3 +1,28 @@
+/* Fonts for this page only (not on main POPTU bundle path) */
+@font-face {
+  font-family: 'FC Minimal';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/FCMinimal-Regular.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'FC Minimal';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./assets/fonts/FCMinimal-SemiBold.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'FC Minimal';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/FCMinimal-Bold.otf') format('opentype');
+}
+
 /* Full-viewport landing — scoped so it does not affect Home / POPTU */
 .coming-soon {
   --cs-bg: #0a193d;

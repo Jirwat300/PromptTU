@@ -1,3 +1,4 @@
+import './index.css'
 import { useEffect, useMemo, useState } from 'react'
 import ptLogo from './assets/pt-logo-dpi.svg'
 import daoImage from './assets/Dao.png'
