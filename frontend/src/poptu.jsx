@@ -5,7 +5,6 @@ import lizard2 from './assets/Lizard2.PNG'
 import lizard3 from './assets/Lizard3.PNG'
 import lizard4 from './assets/Lizard4.PNG'
 import lizard5 from './assets/Lizard5.PNG'
-import lizard6 from './assets/Lizard6.PNG'
 import iconHome from './assets/icon-home.png'
 import iconHelp from './assets/icon-help.png'
 import iconShare from './assets/icon-share.png'
@@ -61,7 +60,7 @@ const POP_FLUSH_MS = 800          // batch window for /api/ranking/pop
 /* ----------------------------- Lizard poses ---------------------------- */
 /* Every click picks a random pose from this array (always different from
  * the current one, so the image always changes).                          */
-const LIZARD_POSES = [lizard1, lizard2, lizard3, lizard4, lizard5, lizard6]
+const LIZARD_POSES = [lizard1, lizard2, lizard3, lizard4, lizard5]
 
 function pickRandomPose(currentSrc) {
   if (LIZARD_POSES.length <= 1) return LIZARD_POSES[0]

@@ -296,7 +296,7 @@ body.poptu-active {
   display: block;
   object-fit: contain;
   object-position: bottom center;
-  transform: scale(1.4); /* Scaled up to counteract uncropped blank space from exports */
+  transform: scale(1.8); /* Massively scaled up to fill the viewport and offset blank boundaries */
   transform-origin: bottom center;
   pointer-events: none;
   user-select: none;
