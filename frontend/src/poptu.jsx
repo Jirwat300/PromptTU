@@ -8,6 +8,7 @@ import lizard5 from './assets/Lizard5.PNG'
 import iconHome from './assets/computer_icon.png'
 import iconHelp from './assets/question_icon.png'
 import iconShare from './assets/internet_icon.png'
+import ptLogo from './assets/pt-logo-dpi.svg'
 
 /* =========================================================================
  * POP TU — Popcat-style clicker themed as a Windows 95 desktop app.
@@ -491,6 +492,13 @@ export default function PopTu() {
                 ))}
               </div>
             </div>
+            <img
+              className="poptu-stage-logo"
+              src={ptLogo}
+              alt=""
+              decoding="async"
+              aria-hidden="true"
+            />
           </div>
 
           <p className="poptu-credit" lang="th">สื่อดิจิทัลนี้จัดทำและเว็บไซต์นี้จัดทำโดย พรรคพร้อมธรรม</p>

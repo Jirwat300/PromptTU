@@ -414,8 +414,23 @@ body.poptu-active #root {
   contain: layout;
   position: relative;
 }
+/* PT mark beside mascot — does not affect layout flow (absolute); no hit capture */
+.poptu-stage-logo {
+  position: absolute;
+  right: max(6px, 4%);
+  bottom: max(4px, 3%);
+  width: clamp(2.75rem, 15vmin, 6.25rem);
+  height: auto;
+  aspect-ratio: 2917 / 1814;
+  object-fit: contain;
+  object-position: center bottom;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
 .lizard-wrap {
   position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   display: flex;
@@ -838,6 +853,11 @@ body.poptu-active #root {
   .lizard-stage {
     min-height: clamp(8.75rem, 27vmin, 18.5rem);
   }
+  .poptu-stage-logo {
+    width: clamp(2.25rem, 11vmin, 3.75rem);
+    right: max(2px, 2%);
+    bottom: max(2px, 2%);
+  }
 }
 
 /* Shorter mobile viewports — tighter LCD (not mascot); more room for one-screen layout */
@@ -890,6 +910,9 @@ body.poptu-active #root {
   }
   .lizard-stage {
     min-height: clamp(7.75rem, 24vmin, 16.5rem);
+  }
+  .poptu-stage-logo {
+    width: clamp(2rem, 10vmin, 3.25rem);
   }
   .poptu .poptu-credit[lang="th"] {
     font-size: clamp(9px, 2.5vw, 10.5px);
