@@ -690,30 +690,44 @@ body.poptu-active #root {
     gap: 4px;
   }
 
+  .rankings-window {
+    border-width: 1px;
+  }
   .rankings-window .win-titlebar {
-    padding: 2px 3px;
+    padding: 1px 2px 1px 3px;
   }
   .rankings-window .win-title {
-    font-size: 11px;
+    font-size: 10px;
+  }
+  .rankings-window .win-btn {
+    width: 15px;
+    height: 13px;
+    font-size: 8px;
   }
   .rankings-body {
-    padding: 4px;
-    gap: 3px;
+    padding: 2px 3px 3px;
+    gap: 2px;
   }
   .ranking-row {
-    grid-template-columns: 24px 1fr auto;
-    gap: 4px;
-    padding: 2px 5px;
+    grid-template-columns: 18px 1fr auto;
+    gap: 3px;
+    padding: 1px 4px;
   }
   .ranking-num {
-    width: 20px;
-    height: 20px;
-    font-size: 13px;
-    border-width: 1.5px;
+    width: 17px;
+    height: 17px;
+    font-size: 11px;
+    border-width: 1px;
   }
   .ranking-faculty,
   .ranking-score {
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+  /* Cap Thai leaderboard names — beats global [lang=th] 200% so Rankings stays short */
+  .poptu .rankings-window .ranking-faculty[lang="th"] {
+    font-size: 10px;
+    line-height: 1.15;
   }
 
   /* LCD digits slightly smaller on mobile but still prominent */
@@ -812,11 +826,25 @@ body.poptu-active #root {
     gap: 3px;
   }
   .rankings-body {
-    padding: 3px;
-    gap: 2px;
+    padding: 2px;
+    gap: 1px;
   }
   .ranking-row {
-    padding: 1px 4px;
+    padding: 0 3px;
+    gap: 2px;
+  }
+  .ranking-num {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+  .ranking-faculty,
+  .ranking-score {
+    font-size: 9px;
+  }
+  .poptu .rankings-window .ranking-faculty[lang="th"] {
+    font-size: 9px;
+    line-height: 1.1;
   }
   .lcd-wrap {
     padding: 3px 2px 1px;
