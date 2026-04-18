@@ -411,7 +411,8 @@ body.poptu-active #root {
   min-height: 0;
   /* Mascot is the dominant block; min-height guarantees weight vs rankings + faculty */
   min-height: clamp(11.5rem, 36vmin, 26rem);
-  background: #fff;
+  /* Let .poptu-body scenic background show through behind the mascot */
+  background: transparent;
   user-select: none;
   overflow: hidden;
   overflow-anchor: none;
