@@ -967,7 +967,7 @@ body.poptu-active #root {
     max-height: none;
     flex-shrink: 0;
     /* Shrink the Win95 chrome on desktop so Rankings → Faculty fits common laptop heights */
-    zoom: 0.78;
+    zoom: 0.73;
   }
 
   .poptu-body {
@@ -1055,13 +1055,13 @@ body.poptu-active #root {
 /* Short laptop / small desktop viewport — keep mascot usable without touching mobile rules */
 @media (min-width: 521px) and (max-height: 800px) {
   .poptu-window {
-    zoom: 0.74;
+    zoom: 0.69;
   }
 }
 
 @media (min-width: 521px) and (max-height: 720px) {
   .poptu-window {
-    zoom: 0.68;
+    zoom: 0.63;
   }
 
   .lizard-stage {
