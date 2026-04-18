@@ -666,6 +666,20 @@ body.poptu-active #root {
   padding: 10px 16px 14px;
 }
 
+/* Ready? teaser — centered copy; cap Thai so global [lang=th] 200% does not blow up the modal */
+.win-dialog-body--ready {
+  padding: 22px 20px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.poptu .poptu-modal-root .win-dialog-msg--ready-teaser[lang="th"] {
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 /* ----- taskbar at the bottom of the page ----- */
 .poptu-taskbar {
   position: fixed;

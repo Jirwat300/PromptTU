@@ -7,7 +7,7 @@ const navItems = [
   { label: 'เกี่ยวกับพรรค', href: '#about' },
   { label: 'นโยบาย', href: '#activity' },
   { label: 'ผู้สมัคร', href: '#home' },
-  { label: 'PT', href: '#poptu' },
+  { label: 'POPTU', href: '#poptu' },
   { label: 'ติดต่อเรา', href: '#contact' },
 ]
 

@@ -209,6 +209,44 @@ function ErrorDialog({ onOk }) {
   )
 }
 
+/** “Ready?” taskbar — teaser window (Win95 chrome) */
+function ReadyDialog({ onClose }) {
+  return (
+    <div
+      className="poptu-modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ready-dialog-title"
+      onClick={onClose}
+    >
+      <div
+        className="win-dialog win-dialog--ready"
+        style={{ width: 'min(420px, 100%)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="win-titlebar">
+          <span className="win-title" id="ready-dialog-title">POPTU Game</span>
+          <div className="win-title-btns">
+            <button type="button" className="win-btn" aria-label="Minimise">_</button>
+            <button type="button" className="win-btn" aria-label="Maximise">□</button>
+            <button type="button" className="win-btn" onClick={onClose} aria-label="Close">×</button>
+          </div>
+        </div>
+        <div className="win-dialog-body win-dialog-body--ready">
+          <p className="win-dialog-msg win-dialog-msg--ready-teaser" lang="th">
+            พบกับฟีเจอร์สนุกๆ จาก พรรคพร้อมธรรม เร็วๆ นี้
+          </p>
+        </div>
+        <div className="win-dialog-actions">
+          <button type="button" className="w95-btn" lang="en" onClick={onClose} autoFocus>
+            Ready!
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ================================ Page ================================ */
 
 export default function PopTu() {
@@ -219,6 +257,7 @@ export default function PopTu() {
   const [poseSrc, setPoseSrc] = useState(lizard1)
   const [caught, setCaught] = useState(false)
   const [errOpen, setErrOpen] = useState(false)
+  const [readyOpen, setReadyOpen] = useState(false)
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
   const lizardPopAnchorRef = useRef(null)
@@ -363,7 +402,7 @@ export default function PopTu() {
 
   // -------------------- Click handler --------------------
   const onLizardClick = useCallback(() => {
-    if (caught || errOpen || !facultyId) return
+    if (caught || errOpen || readyOpen || !facultyId) return
     const now = Date.now()
     const buf = clickTimes.current
     buf.push(now)
@@ -394,7 +433,7 @@ export default function PopTu() {
         return { ...prev, [facultyId]: Math.max(cur - penalty, 0) }
       })
     }
-  }, [caught, errOpen, facultyId, detectCheating, scheduleFlush])
+  }, [caught, errOpen, readyOpen, facultyId, detectCheating, scheduleFlush])
 
   const closeError = useCallback(() => {
     setErrOpen(false)
@@ -421,9 +460,9 @@ export default function PopTu() {
 
   return (
     <main className="poptu">
-      <section className="poptu-window" aria-label="PT window">
+      <section className="poptu-window" aria-label="POPTU window">
         <header className="win-titlebar">
-          <span className="win-title">PT</span>
+          <span className="win-title">POPTU</span>
           <div className="win-title-btns">
             <button type="button" className="win-btn" aria-label="Minimise">_</button>
             <button type="button" className="win-btn" aria-label="Maximise">□</button>
@@ -542,6 +581,8 @@ export default function PopTu() {
       {/* cheat error */}
       {errOpen && <ErrorDialog onOk={closeError} />}
 
+      {readyOpen && <ReadyDialog onClose={() => setReadyOpen(false)} />}
+
       {/* bottom taskbar */}
       <nav className="poptu-taskbar" aria-label="Taskbar">
         <div className="poptu-taskbar-cluster">
@@ -557,8 +598,8 @@ export default function PopTu() {
           <button
             type="button"
             className="taskbar-item taskbar-item--help"
-            onClick={() => alert('คลิกไปเรื่อย ๆ จนกว่าจะเมื่อย\nอย่าใช้ auto-click เด็ดขาด เดี๋ยวโดนจับ!')}
-            title="วิธีเล่น"
+            onClick={() => setReadyOpen(true)}
+            title="POPTU — เร็วๆ นี้"
           >
             <img src={iconHelp} alt="Help" className="taskbar-icon-img" draggable={false} />
             <span className="taskbar-label">Ready?</span>
@@ -570,7 +611,7 @@ export default function PopTu() {
               const url = window.location.href
               try {
                 if (navigator.share) {
-                  await navigator.share({ title: 'พร้อมธรรม · PT เกม', url })
+                  await navigator.share({ title: 'พร้อมธรรม · POPTU เกม', url })
                 } else {
                   await navigator.clipboard.writeText(url)
                   alert('คัดลอกลิงก์แล้ว — ไปส่งให้เพื่อนได้เลย')
