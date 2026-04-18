@@ -256,42 +256,46 @@ body.poptu-active {
   justify-content: center;
   align-items: flex-end;
   padding: 6px 4px 12px;
-  min-height: 420px;           /* big Figma-style hero area */
+  height: 520px; /* Fixed height guarantees no layout shift ever */
   background: #fff;
   user-select: none;
+}
+.lizard-wrap {
+  position: relative;
+  width: min(560px, 100%); /* Limits the image from becoming too bloated on ultrawide */
+  height: 100%; /* Spans the entire stage height */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
 }
 .lizard-btn {
   background: transparent;
   border: 0;
   padding: 0;
   cursor: pointer;
-  /* Fill almost the entire content width — matches the Figma mock where
-     the lizard hero image dominates the window. */
-  width: min(500px, 96%);
+  width: 100%;
+  height: 100%;
+  display: block;
   transition: transform 70ms ease-out;
 }
 .lizard-btn:active {
   transform: scale(0.97);
 }
-.lizard-btn svg,
-.lizard-btn .lizard-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  pointer-events: none;
-}
-
-/* keep all poses the same visual height so celebrations don't make the
-   layout jump — aspect-ratio is consistent across the 6 PNG exports.   */
-.lizard-img {
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
-}
 .lizard-pop-anchor {
   display: block;
+  width: 100%;
+  height: 100%;
   animation: lizard-pop 280ms ease-out;
+}
+.lizard-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain; /* Dynamically sizes within the 520px box */
+  object-position: bottom center; /* Nails the anchor to the floor perfectly */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 @keyframes lizard-pop {
   0%   { transform: scale(1); }
@@ -299,12 +303,7 @@ body.poptu-active {
   100% { transform: scale(1); }
 }
 
-/* ----- lizard wrap + floating +1 on click ----- */
-.lizard-wrap {
-  position: relative;
-  display: inline-flex;
-  justify-content: center;
-}
+/* ----- floating +1 on click ----- */
 .floater-layer {
   position: absolute;
   inset: 0;
