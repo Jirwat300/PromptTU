@@ -383,7 +383,8 @@ body.poptu-active #root {
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 10px 10px 10px;
   position: relative;
-  margin: 4px 4px 6px;
+  /* Nudge the faculty block up without changing .lizard-stage / mascot sizing */
+  margin: -4px 4px 6px;
   flex-shrink: 0;
 }
 .fieldset > legend {
@@ -447,12 +448,14 @@ body.poptu-active #root {
   outline-offset: -4px;
 }
 
-/* ----- footer note ----- */
+/* ----- footer note (under Faculty) ----- */
 .poptu-credit {
   text-align: center;
   font-size: 11px;
-  color: #444;
-  padding: 4px 0 0;
+  color: #333;
+  line-height: 1.3;
+  padding: 0 8px 4px;
+  margin: -4px 0 0;
   flex-shrink: 0;
 }
 
@@ -620,7 +623,7 @@ body.poptu-active #root {
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
   .fieldset {
-    margin: 2px 2px 3px;
+    margin: -6px 2px 2px;
     padding: 6px 8px 6px;
   }
   .fieldset > legend {
@@ -647,9 +650,10 @@ body.poptu-active #root {
   }
 
   .poptu-credit {
-    font-size: 9px;
-    line-height: 1.15;
-    padding: 1px 0 0;
+    font-size: 10px;
+    line-height: 1.25;
+    padding: 0 6px 3px;
+    margin-top: -5px;
   }
 
   .poptu-taskbar {
@@ -685,12 +689,13 @@ body.poptu-active #root {
   .seg.vert { width: 8px; height: 22px; }
   .seg.g { top: 24px; }
   .fieldset {
-    margin: 1px 1px 2px;
+    margin: -5px 1px 2px;
     padding: 5px 6px;
   }
   .poptu-credit {
-    font-size: 8px;
-    padding: 0;
+    font-size: 9px;
+    padding: 0 4px 3px;
+    margin-top: -4px;
   }
 }
 
