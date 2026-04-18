@@ -931,7 +931,7 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(760px, min(100%, 96vw));
+    width: min(640px, 100%);
   }
 
   .poptu-body {
@@ -1028,7 +1028,7 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(960px, min(100%, min(96vw, 58rem)));
+    width: min(640px, 100%);
   }
 
   .poptu-body {
@@ -1108,7 +1108,7 @@ body.poptu-active #root {
   }
 }
 
-/* ----- Extra-wide desktop: fluid max width + slightly larger type (521px+ only) ----- */
+/* ----- Extra-wide desktop: same core window, only scale internals (521px+ only) ----- */
 @media (min-width: 1200px) {
   .poptu {
     --poptu-row-text: 19px;
@@ -1118,7 +1118,7 @@ body.poptu-active #root {
   }
 
   .poptu-window {
-    width: min(1040px, min(100%, min(94vw, 62rem)));
+    width: min(640px, 100%);
   }
 
   .poptu-body {
