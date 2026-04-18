@@ -521,7 +521,7 @@ body.poptu-active #root {
 /* ----- Faculty group box ----- */
 .fieldset {
   background: #fff;
-  border: 5px solid var(--win-dark);
+  border: 2px solid var(--win-dark);
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
   position: relative;
@@ -828,15 +828,11 @@ body.poptu-active #root {
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
-  /* Faculty: no negative margin (avoids border/legend clipping under overflow); dark edge reads on white */
+  /* Faculty: no negative margin (avoids border/legend clipping under overflow); border matches base / desktop */
   .fieldset {
     margin: 4px 6px 12px;
     padding: 6px 8px 7px;
     flex-shrink: 0;
-    border: 1px solid var(--win-dark);
-    box-shadow:
-      inset 1px 1px 0 var(--win-light),
-      inset -1px -1px 0 var(--win-shadow);
   }
   .fieldset > legend {
     top: -8px;
@@ -939,10 +935,6 @@ body.poptu-active #root {
   .fieldset {
     margin: 3px 5px 10px;
     padding: 6px 7px 6px;
-    border: 1px solid var(--win-dark);
-    box-shadow:
-      inset 1px 1px 0 var(--win-light),
-      inset -1px -1px 0 var(--win-shadow);
   }
   .lizard-stage {
     min-height: clamp(7.75rem, 24vmin, 16.5rem);
