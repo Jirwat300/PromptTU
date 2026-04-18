@@ -946,10 +946,14 @@ body.poptu-active #root {
   }
 
   .poptu {
-    min-height: auto;
+    /* At least one viewport tall so the window can sit in the middle; grows taller when scrolling */
+    min-height: 100dvh;
+    min-height: 100svh;
     overflow-x: hidden;
     overflow-y: visible;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
+    justify-content: safe center;
     padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(16px, env(safe-area-inset-left, 0px));
     --poptu-row-text: 17px;
