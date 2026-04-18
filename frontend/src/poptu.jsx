@@ -1,69 +1,76 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './poptu.css'
-import lizardIdle        from './assets/Lizard1.PNG' // standing, mouth closed
-import lizardTongue      from './assets/Lizard2.PNG' // standing, tongue out (pop)
-import lizardHug3        from './assets/Lizard3.PNG' // hugging the number-3 sign
-import lizardHold3       from './assets/Lizard4.PNG' // holding the 3 sign high
-import lizardSmile       from './assets/Lizard5.PNG' // full-body smile (for faculty picker)
-// Lizard6 (side-profile running pose) is available at ./assets/Lizard6.PNG
-// but not yet used — swap it in anywhere you want more variety.
+import lizard1 from './assets/Lizard1.PNG'
+import lizard2 from './assets/Lizard2.PNG'
+import lizard3 from './assets/Lizard3.PNG'
+import lizard4 from './assets/Lizard4.PNG'
+import lizard5 from './assets/Lizard5.PNG'
+import lizard6 from './assets/Lizard6.PNG'
 
 /* =========================================================================
  * POP TU — Popcat-style clicker themed as a Windows 95 desktop app.
  *
  * Features:
  *   - Faculty picker (blocks the game until a faculty is chosen)
- *   - Clickable lizard that toggles mouth-closed ↔ tongue-out on each click
+ *   - Clickable lizard that RANDOMLY swaps to one of 6 PNGs each click
  *   - Big blue 4-digit LCD counter (turns red when anti-cheat catches you)
- *   - Per-faculty Rankings window (top 3 by POP count, live)
+ *   - Per-faculty Rankings window — REAL, shared via backend API
+ *     (GET /api/ranking/scores, POST /api/ranking/pop)
  *   - Anti-autoclicker: statistical check on click-interval variance + CPS
  *   - Retro ERROR dialog + counter reset when cheating is detected
- *   - Bottom taskbar with Home button that returns to the main site (#home)
- *   - Celebration poses at every 100 POP (hug3) and every 500 POP (hold3)
+ *   - Bottom taskbar with Home button that returns to the main site
  * ========================================================================= */
 
 /** Thammasat University faculties — keep each id stable for persistence */
 const FACULTIES = [
-  { id: 'arch',    emoji: '🏛️', name: 'คณะสถาปัตยกรรมศาสตร์และการผังเมือง', seed: 10000 },
-  { id: 'law',     emoji: '⚖️', name: 'คณะนิติศาสตร์',                         seed: 9800 },
-  { id: 'comm',    emoji: '📊', name: 'คณะพาณิชยศาสตร์และการบัญชี',            seed: 9650 },
-  { id: 'polsci',  emoji: '🏛️', name: 'คณะรัฐศาสตร์',                         seed: 8700 },
-  { id: 'econ',    emoji: '💹', name: 'คณะเศรษฐศาสตร์',                       seed: 7400 },
-  { id: 'soc',     emoji: '🤝', name: 'คณะสังคมสงเคราะห์ศาสตร์',                seed: 5200 },
-  { id: 'anthro',  emoji: '👥', name: 'คณะสังคมวิทยาและมานุษยวิทยา',            seed: 4800 },
-  { id: 'arts',    emoji: '📚', name: 'คณะศิลปศาสตร์',                         seed: 6700 },
-  { id: 'journ',   emoji: '📰', name: 'คณะวารสารศาสตร์และสื่อสารมวลชน',         seed: 5900 },
-  { id: 'sci',     emoji: '🔬', name: 'คณะวิทยาศาสตร์และเทคโนโลยี',            seed: 6100 },
-  { id: 'eng',     emoji: '⚙️', name: 'คณะวิศวกรรมศาสตร์',                    seed: 7900 },
-  { id: 'fine',    emoji: '🎨', name: 'คณะศิลปกรรมศาสตร์',                     seed: 3800 },
-  { id: 'med',     emoji: '🩺', name: 'คณะแพทยศาสตร์',                         seed: 6400 },
-  { id: 'dent',    emoji: '🦷', name: 'คณะทันตแพทยศาสตร์',                     seed: 2900 },
-  { id: 'nurse',   emoji: '💉', name: 'คณะพยาบาลศาสตร์',                       seed: 3100 },
-  { id: 'pub',     emoji: '🏥', name: 'คณะสาธารณสุขศาสตร์',                   seed: 2700 },
-  { id: 'allied',  emoji: '🧪', name: 'คณะสหเวชศาสตร์',                        seed: 2400 },
-  { id: 'inter',   emoji: '🌏', name: 'วิทยาลัยนานาชาติปรีดี พนมยงค์',         seed: 4200 },
-  { id: 'learn',   emoji: '🎓', name: 'วิทยาลัยสหวิทยาการ',                    seed: 3500 },
+  { id: 'arch',    emoji: '🏛️', name: 'คณะสถาปัตยกรรมศาสตร์และการผังเมือง' },
+  { id: 'law',     emoji: '⚖️', name: 'คณะนิติศาสตร์' },
+  { id: 'comm',    emoji: '📊', name: 'คณะพาณิชยศาสตร์และการบัญชี' },
+  { id: 'polsci',  emoji: '🏛️', name: 'คณะรัฐศาสตร์' },
+  { id: 'econ',    emoji: '💹', name: 'คณะเศรษฐศาสตร์' },
+  { id: 'soc',     emoji: '🤝', name: 'คณะสังคมสงเคราะห์ศาสตร์' },
+  { id: 'anthro',  emoji: '👥', name: 'คณะสังคมวิทยาและมานุษยวิทยา' },
+  { id: 'arts',    emoji: '📚', name: 'คณะศิลปศาสตร์' },
+  { id: 'journ',   emoji: '📰', name: 'คณะวารสารศาสตร์และสื่อสารมวลชน' },
+  { id: 'sci',     emoji: '🔬', name: 'คณะวิทยาศาสตร์และเทคโนโลยี' },
+  { id: 'eng',     emoji: '⚙️', name: 'คณะวิศวกรรมศาสตร์' },
+  { id: 'fine',    emoji: '🎨', name: 'คณะศิลปกรรมศาสตร์' },
+  { id: 'med',     emoji: '🩺', name: 'คณะแพทยศาสตร์' },
+  { id: 'dent',    emoji: '🦷', name: 'คณะทันตแพทยศาสตร์' },
+  { id: 'nurse',   emoji: '💉', name: 'คณะพยาบาลศาสตร์' },
+  { id: 'pub',     emoji: '🏥', name: 'คณะสาธารณสุขศาสตร์' },
+  { id: 'allied',  emoji: '🧪', name: 'คณะสหเวชศาสตร์' },
+  { id: 'inter',   emoji: '🌏', name: 'วิทยาลัยนานาชาติปรีดี พนมยงค์' },
+  { id: 'learn',   emoji: '🎓', name: 'วิทยาลัยสหวิทยาการ' },
 ]
 
 const MAX_CLICK_BUFFER = 20 // how many recent click timestamps we analyse
 const CPS_CAP = 25          // >25 clicks/sec sustained ⇒ almost certainly a bot
 const JITTER_MIN = 0.08     // stdev/mean threshold. Humans jitter ≳ 0.15
 
+/** Backend base URL. Configure via `VITE_API_URL` in frontend/.env.
+ *  Fallback: same origin `/api`. If the frontend is hosted separately from
+ *  the backend, set VITE_API_URL to the backend's Vercel URL.             */
+const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
+const RANKING_REFRESH_MS = 4000   // how often we re-poll the leaderboard
+const POP_FLUSH_MS = 800          // batch window for /api/ranking/pop
+
 /* ----------------------------- Lizard poses ---------------------------- */
-/* Pose keys map to the PNGs imported above. Each click toggles
- *   'idle' ↔ 'tongue' (classic Popcat behaviour).
- * At score milestones we briefly force 'hug3' or 'hold3' as a celebration. */
-const LIZARD_SRC = {
-  idle:   lizardIdle,
-  tongue: lizardTongue,
-  hug3:   lizardHug3,
-  hold3:  lizardHold3,
+/* Every click picks a random pose from this array (always different from
+ * the current one, so the image always changes).                          */
+const LIZARD_POSES = [lizard1, lizard2, lizard3, lizard4, lizard5, lizard6]
+
+function pickRandomPose(currentSrc) {
+  if (LIZARD_POSES.length <= 1) return LIZARD_POSES[0]
+  // Pick any index except the current one.
+  const pool = LIZARD_POSES.filter((src) => src !== currentSrc)
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
-function Lizard({ pose }) {
+function Lizard({ src }) {
   return (
     <img
-      src={LIZARD_SRC[pose] || LIZARD_SRC.idle}
+      src={src}
       alt="Lizard mascot"
       className="lizard-img"
       draggable={false}
@@ -123,7 +130,7 @@ function FacultyPicker({ onPick }) {
         <div style={{ padding: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 0 10px' }}>
             <img
-              src={lizardSmile}
+              src={lizard5}
               alt=""
               aria-hidden="true"
               style={{ width: 72, height: 'auto', flexShrink: 0 }}
@@ -184,18 +191,24 @@ function ErrorDialog({ onOk }) {
 
 export default function PopTu() {
   const [facultyId, setFacultyId] = useState(null)
-  const [scores, setScores] = useState(() =>
-    Object.fromEntries(FACULTIES.map((f) => [f.id, f.seed])),
-  )
-  // 'idle' = mouth closed · 'tongue' = click pop · 'hug3' / 'hold3' = milestones
-  const [pose, setPose] = useState('idle')
-  const milestoneTimer = useRef(null)
+  /** Server-truth scores keyed by faculty id. Starts empty; populated on mount. */
+  const [scores, setScores] = useState({})
+  /** Random current pose image src */
+  const [poseSrc, setPoseSrc] = useState(lizard1)
   const [caught, setCaught] = useState(false)
   const [errOpen, setErrOpen] = useState(false)
-  const [floaters, setFloaters] = useState([]) // { id, n }
+  const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
+
   const clickTimes = useRef([])
   const floaterIdRef = useRef(0)
+
+  /** Pending click deltas per faculty that haven't been flushed to the backend yet. */
+  const pendingDeltaRef = useRef(0)
+  const flushTimerRef = useRef(null)
+  /** Locally applied (optimistic) additions per faculty we've already rendered in the
+   *  counter but are still waiting for the server round-trip to confirm. */
+  const optimisticRef = useRef({})
 
   // Mark body for theme background
   useEffect(() => {
@@ -203,14 +216,102 @@ export default function PopTu() {
     return () => document.body.classList.remove('poptu-active')
   }, [])
 
-  // Clear any pending milestone timer when unmounting
-  useEffect(() => () => {
-    if (milestoneTimer.current) clearTimeout(milestoneTimer.current)
+  // -------------------- Fetch scores from backend --------------------
+  const fetchScores = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ranking/scores`, { cache: 'no-store' })
+      if (!res.ok) return
+      const json = await res.json()
+      if (json?.scores) {
+        // Merge server truth with any still-pending optimistic adds so the
+        // user doesn't see their own clicks roll back during a refresh.
+        const merged = { ...json.scores }
+        for (const [id, add] of Object.entries(optimisticRef.current)) {
+          merged[id] = (merged[id] ?? 0) + add
+        }
+        setScores(merged)
+      }
+    } catch {
+      /* network hiccup — we'll try again on the next poll */
+    }
   }, [])
 
-  const myCount = facultyId ? scores[facultyId] ?? 0 : 0
+  useEffect(() => {
+    // Kick off an immediate fetch, then poll every RANKING_REFRESH_MS.
+    // The state update inside `fetchScores` is awaited (async), so it won't
+    // trigger a render inside the effect body itself.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchScores()
+    const iv = setInterval(fetchScores, RANKING_REFRESH_MS)
+    return () => clearInterval(iv)
+  }, [fetchScores])
 
-  /** Anti-cheat analysis — updates caught state in-place. */
+  // -------------------- Flush pending clicks to backend --------------------
+  const flushPending = useCallback(async () => {
+    if (!facultyId) return
+    const delta = pendingDeltaRef.current
+    if (delta <= 0) return
+    pendingDeltaRef.current = 0
+
+    // mark as optimistic so concurrent refreshes don't overwrite
+    optimisticRef.current[facultyId] = (optimisticRef.current[facultyId] ?? 0) + delta
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ranking/pop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ faculty_id: facultyId, delta }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (res.ok && typeof json?.count === 'number') {
+        // reconcile: server now knows about the delta we just sent, drop it
+        optimisticRef.current[facultyId] = Math.max(
+          (optimisticRef.current[facultyId] ?? 0) - delta,
+          0,
+        )
+        setScores((prev) => ({ ...prev, [facultyId]: json.count + (optimisticRef.current[facultyId] ?? 0) }))
+      } else {
+        // roll back optimistic add on error
+        optimisticRef.current[facultyId] = Math.max(
+          (optimisticRef.current[facultyId] ?? 0) - delta,
+          0,
+        )
+      }
+    } catch {
+      // network failure: roll back optimistic add and requeue delta
+      optimisticRef.current[facultyId] = Math.max(
+        (optimisticRef.current[facultyId] ?? 0) - delta,
+        0,
+      )
+      pendingDeltaRef.current += delta
+    }
+  }, [facultyId])
+
+  const scheduleFlush = useCallback(() => {
+    if (flushTimerRef.current) return
+    flushTimerRef.current = setTimeout(() => {
+      flushTimerRef.current = null
+      flushPending()
+    }, POP_FLUSH_MS)
+  }, [flushPending])
+
+  // Flush outstanding clicks on unmount / page hide
+  useEffect(() => {
+    const onHide = () => { flushPending() }
+    window.addEventListener('pagehide', onHide)
+    window.addEventListener('beforeunload', onHide)
+    return () => {
+      window.removeEventListener('pagehide', onHide)
+      window.removeEventListener('beforeunload', onHide)
+      if (flushTimerRef.current) {
+        clearTimeout(flushTimerRef.current)
+        flushTimerRef.current = null
+      }
+      flushPending()
+    }
+  }, [flushPending])
+
+  // -------------------- Anti-cheat --------------------
   const detectCheating = useCallback(() => {
     const buf = clickTimes.current
     if (buf.length < MAX_CLICK_BUFFER) return false
@@ -222,14 +323,12 @@ export default function PopTu() {
     const jitter = mean > 0 ? stdev / mean : 0
     const cps = 1000 / Math.max(1, mean)
 
-    // Two signatures:
-    //   1. Too fast overall (unlikely sustainable by human)
-    //   2. Suspiciously even cadence (classic autoclicker)
     if (cps > CPS_CAP) return true
     if (mean < 90 && jitter < JITTER_MIN) return true
     return false
   }, [])
 
+  // -------------------- Click handler --------------------
   const onLizardClick = useCallback(() => {
     if (caught || errOpen || !facultyId) return
     const now = Date.now()
@@ -237,23 +336,14 @@ export default function PopTu() {
     buf.push(now)
     if (buf.length > MAX_CLICK_BUFFER) buf.shift()
 
-    // Toggle pose (Popcat-style), bump score
-    setPose((p) => (p === 'tongue' ? 'idle' : 'tongue'))
+    // Random pose (always different from the current one)
+    setPoseSrc((cur) => pickRandomPose(cur))
     setPopAnim((n) => n + 1)
 
-    // Derive the new count from current state BEFORE scheduling the update,
-    // so the milestone check is synchronous and reliable.
-    const newCount = (scores[facultyId] ?? 0) + 1
+    // Optimistic local bump so the LCD feels instant
     setScores((prev) => ({ ...prev, [facultyId]: (prev[facultyId] ?? 0) + 1 }))
-
-    // Milestones: hold the celebration pose briefly, then return to idle.
-    const scheduleCelebration = (kind, durMs) => {
-      setPose(kind)
-      if (milestoneTimer.current) clearTimeout(milestoneTimer.current)
-      milestoneTimer.current = setTimeout(() => setPose('idle'), durMs)
-    }
-    if (newCount % 500 === 0)      scheduleCelebration('hold3', 1600)
-    else if (newCount % 100 === 0) scheduleCelebration('hug3', 900)
+    pendingDeltaRef.current += 1
+    scheduleFlush()
 
     // Floater +1
     const fid = ++floaterIdRef.current
@@ -264,14 +354,14 @@ export default function PopTu() {
     if (detectCheating()) {
       setCaught(true)
       setErrOpen(true)
-      // Penalty: roll back 100 pts (not below seed) to discourage retries
+      // Penalty: roll back 100 optimistic pts locally (server stays authoritative)
       setScores((prev) => {
         const penalty = 100
         const cur = prev[facultyId] ?? 0
         return { ...prev, [facultyId]: Math.max(cur - penalty, 0) }
       })
     }
-  }, [caught, errOpen, facultyId, detectCheating, scores])
+  }, [caught, errOpen, facultyId, detectCheating, scheduleFlush])
 
   const closeError = useCallback(() => {
     setErrOpen(false)
@@ -280,8 +370,12 @@ export default function PopTu() {
   }, [])
 
   const goHome = useCallback(() => {
-    window.location.hash = '' // App.jsx listens to hashchange → switches back to Home
-  }, [])
+    // flush any queued pops before navigating away
+    flushPending()
+    window.location.hash = ''
+  }, [flushPending])
+
+  const myCount = facultyId ? scores[facultyId] ?? 0 : 0
 
   const rankings = useMemo(() => {
     return FACULTIES
@@ -330,6 +424,11 @@ export default function PopTu() {
                   <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
                 </div>
               ))}
+              {rankings.length === 0 && (
+                <div className="ranking-row" style={{ opacity: 0.6 }}>
+                  <span className="ranking-faculty">กำลังโหลด…</span>
+                </div>
+              )}
             </div>
           </section>
 
@@ -350,7 +449,7 @@ export default function PopTu() {
                 {/* key re-mounts only the inner span so CSS animation restarts
                     on every click — the button itself keeps focus. */}
                 <span className="lizard-pop-anchor" key={popAnim}>
-                  <Lizard pose={pose} />
+                  <Lizard src={poseSrc} />
                 </span>
               </button>
               <div className="floater-layer" aria-hidden="true">
@@ -374,7 +473,11 @@ export default function PopTu() {
               <button
                 type="button"
                 className="w95-btn"
-                onClick={() => setFacultyId(null)}
+                onClick={() => {
+                  // flush any pending clicks for the previous faculty first
+                  flushPending()
+                  setFacultyId(null)
+                }}
               >เปลี่ยน</button>
             </div>
           </fieldset>

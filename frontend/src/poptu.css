@@ -36,7 +36,7 @@ body.poptu-active {
 
 /* ----- the main Win95 window ----- */
 .poptu-window {
-  width: min(560px, 100%);
+  width: min(640px, 100%);
   background: var(--win-face);
   border: 2px solid var(--win-dark);
   box-shadow:
@@ -114,11 +114,17 @@ body.poptu-active {
 }
 
 /* ----- body inside main window ----- */
+/* White "paper" area inside the chrome, matching the Figma mock. */
 .poptu-body {
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--win-shadow);
+  box-shadow:
+    inset 1px 1px 0 var(--win-shadow),
+    inset -1px -1px 0 var(--win-light);
 }
 
 /* ----- inner Rankings window ----- */
@@ -216,8 +222,9 @@ body.poptu-active {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding: 4px 8px 10px;
-  min-height: 240px;
+  padding: 6px 4px 12px;
+  min-height: 420px;           /* big Figma-style hero area */
+  background: #fff;
   user-select: none;
 }
 .lizard-btn {
@@ -225,7 +232,9 @@ body.poptu-active {
   border: 0;
   padding: 0;
   cursor: pointer;
-  width: min(280px, 80%);
+  /* Fill almost the entire content width — matches the Figma mock where
+     the lizard hero image dominates the window. */
+  width: min(500px, 96%);
   transition: transform 70ms ease-out;
 }
 .lizard-btn:active {
