@@ -667,8 +667,8 @@ body.poptu-active #root {
 /* Mobile: fit one screen without page scroll — do not change .lizard-stage / .lizard-img (mascot size). */
 @media (max-width: 520px) {
   .poptu {
-    /* Fixed taskbar + safe area; pad so inner chrome does not sit under it */
-    --poptu-bottom-pad: calc(100px + env(safe-area-inset-bottom, 0px));
+    /* Extra room so Faculty + legend stay above fixed taskbar (icons ~52px + labels + safe area) */
+    --poptu-bottom-pad: calc(92px + env(safe-area-inset-bottom, 0px));
     padding: max(4px, env(safe-area-inset-top, 0px)) max(2px, env(safe-area-inset-right, 0px))
       var(--poptu-bottom-pad) max(2px, env(safe-area-inset-left, 0px));
   }
@@ -685,14 +685,9 @@ body.poptu-active #root {
     font-size: 12px;
   }
 
-  /* Scroll inside the white area so Faculty is never clipped by overflow:hidden + flex */
   .poptu-body {
-    padding: 5px 6px 20px;
+    padding: 5px 6px 14px;
     gap: 4px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
   }
 
   .rankings-window .win-titlebar {
@@ -738,15 +733,15 @@ body.poptu-active #root {
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
 
+  /* Credit above Faculty — pull fieldset up slightly + reserve bottom so row isn’t clipped */
   .fieldset {
-    margin: -4px 2px 4px;
-    padding: 8px 8px 7px;
+    margin: -6px 2px 8px;
+    padding: 5px 8px 6px;
     flex-shrink: 0;
-    scroll-margin-bottom: 12px;
   }
   .fieldset > legend {
     font-size: 11px;
-    top: -8px;
+    top: -7px;
     left: 8px;
     padding: 0 4px;
   }
@@ -761,10 +756,10 @@ body.poptu-active #root {
   .faculty-name {
     font-size: 11px;
   }
-  /* Thai faculty row: slightly smaller % so one row + legend fits without huge scroll */
+  /* Thai faculty label: base .faculty-name 11px is for Latin; Thai uses AMD + larger % */
   .poptu .fieldset .faculty-name[lang="th"] {
-    font-size: 195%;
-    line-height: 1.18;
+    font-size: 230%;
+    line-height: 1.2;
   }
   .poptu-modal-root .poptu-faculty-blurb[lang="th"] {
     font-size: 215%;
@@ -798,24 +793,22 @@ body.poptu-active #root {
   .taskbar-icon-img { width: 28px; height: 28px; }
   .taskbar-item { font-size: 9px; gap: 2px; }
 
-  /* Cap mascot column so credit + Faculty keep a predictable slice of the viewport */
+  /* Slightly less vertical reserve so Faculty + credit stay inside .poptu-body (overflow:hidden) */
   .lizard-stage {
-    flex: 1 1 auto;
-    min-height: clamp(7rem, 18vmin, 12rem);
-    max-height: min(42vh, 17rem);
+    min-height: clamp(9.5rem, 28vmin, 21rem);
   }
 }
 
 /* Shorter mobile viewports — tighter LCD (not mascot); more room for one-screen layout */
 @media (max-height: 950px) and (max-width: 520px) {
   .poptu {
-    --poptu-bottom-pad: calc(104px + env(safe-area-inset-bottom, 0px));
+    --poptu-bottom-pad: calc(96px + env(safe-area-inset-bottom, 0px));
   }
   .poptu .lcd--caught .lcd-caught-msg {
     font-size: clamp(0.85rem, 3.8vw, 1.15rem);
   }
   .poptu-body {
-    padding: 4px 5px 22px;
+    padding: 4px 5px 16px;
     gap: 3px;
   }
   .rankings-body {
@@ -833,12 +826,11 @@ body.poptu-active #root {
   .seg.vert { width: 8px; height: 22px; }
   .seg.g { top: 24px; }
   .fieldset {
-    margin: -3px 1px 6px;
-    padding: 7px 6px 7px;
+    margin: -5px 1px 10px;
+    padding: 5px 6px 6px;
   }
   .lizard-stage {
-    min-height: clamp(6.5rem, 16vmin, 11rem);
-    max-height: min(36vh, 14.5rem);
+    min-height: clamp(8.75rem, 26vmin, 19rem);
   }
   .poptu .poptu-credit[lang="th"] {
     font-size: clamp(9px, 2.5vw, 10.5px);
