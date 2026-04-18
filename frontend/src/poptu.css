@@ -6,6 +6,22 @@
 /* ----- reset background when on POP TU page ----- */
 body.poptu-active {
   background: #3a6ea5 !important; /* classic Win95 teal-blue desktop */
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* iOS Safari: make the React root fill the visual viewport (avoids “floating” layout vs Figma) */
+html:has(body.poptu-active) {
+  height: 100%;
+}
+
+body.poptu-active #root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
 }
 
 /* ----- page shell ----- */
@@ -24,14 +40,18 @@ body.poptu-active {
   --lcd-bezel: #ffffff;
   --lcd-red: #ff2a2a;
   --lcd-red-off: rgba(255, 42, 42, 0.12);
+  /* Room for fixed taskbar + home indicator / safe area */
+  --poptu-bottom-pad: calc(56px + env(safe-area-inset-bottom, 0px));
 
-  height: 100vh;
-  height: 100dvh;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
   overflow: hidden;
   color: #000;
   font-family: 'Tahoma', 'MS Sans Serif', 'FC Minimal', system-ui, sans-serif;
   font-size: 14px;
-  padding: 10px 8px 60px; /* Tighter padding for mobile screens */
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px))
+    var(--poptu-bottom-pad) max(8px, env(safe-area-inset-left, 0px));
   display: flex;
   justify-content: center;
 }
@@ -40,6 +60,7 @@ body.poptu-active {
 .poptu-window {
   width: min(640px, 100%);
   height: 100%;
+  min-height: 0;
   background: var(--win-face);
   border: 2px solid var(--win-dark);
   box-shadow:
@@ -124,12 +145,13 @@ body.poptu-active {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  gap: 12px;
+  gap: 10px;
   background: #fff;
   border: 1px solid var(--win-shadow);
   box-shadow:
     inset 1px 1px 0 var(--win-shadow),
     inset -1px -1px 0 var(--win-light);
+  overflow: hidden;
 }
 
 /* ----- inner Rankings window ----- */
@@ -139,6 +161,7 @@ body.poptu-active {
   box-shadow:
     inset 1px 1px 0 var(--win-light),
     inset -1px -1px 0 var(--win-shadow);
+  flex-shrink: 0;
 }
 .rankings-body {
   padding: 8px;
@@ -186,7 +209,10 @@ body.poptu-active {
 .lcd-wrap {
   display: flex;
   justify-content: center;
-  padding: 18px 8px 10px;
+  padding: 14px 8px 6px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2; /* Ensure LCD is always above the lizard */
 }
 .lcd {
   display: inline-flex;
@@ -207,8 +233,8 @@ body.poptu-active {
 }
 
 .lcd-digit {
-  width: 44px;
-  height: 64px;
+  width: 52px;
+  height: 76px;
   position: relative;
 }
 
@@ -235,16 +261,16 @@ body.poptu-active {
 
 /* Horizontal segments (a, d, g) */
 .seg.horiz {
-  left: 6px; right: 6px; height: 10px;
+  left: 6px; right: 6px; height: 12px;
   clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 50%, calc(100% - 5px) 100%, 5px 100%, 0 50%);
 }
 .seg.a { top: 0; }
-.seg.g { top: 27px; }
+.seg.g { top: 32px; }
 .seg.d { bottom: 0; }
 
 /* Vertical segments (b, c, e, f) */
 .seg.vert {
-  width: 10px; height: 26px;
+  width: 12px; height: 30px;
   clip-path: polygon(0 5px, 50% 0, 100% 5px, 100% calc(100% - 5px), 50% 100%, 0 calc(100% - 5px));
 }
 .seg.b { top: 3px; right: 0; }
@@ -257,16 +283,19 @@ body.poptu-active {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding: 6px 4px 12px;
   flex: 1;
   min-height: 0;
+  /* Reserve vertical space so the mascot stays large on short and tall phones */
+  min-height: clamp(10.5rem, 32vmin, 24rem);
   background: #fff;
   user-select: none;
+  overflow: hidden;
+  position: relative;
 }
 .lizard-wrap {
   position: relative;
-  width: min(560px, 100%); /* Limits the image from becoming too bloated on ultrawide */
-  height: 100%; /* Spans the entire stage height */
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -278,14 +307,18 @@ body.poptu-active {
   cursor: pointer;
   width: 100%;
   height: 100%;
-  display: block;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   transition: transform 70ms ease-out;
 }
 .lizard-btn:active {
   transform: scale(0.97);
 }
 .lizard-pop-anchor {
-  display: block;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   width: 100%;
   height: 100%;
   animation: lizard-pop 280ms ease-out;
@@ -293,11 +326,11 @@ body.poptu-active {
 .lizard-img {
   width: 100%;
   height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   display: block;
   object-fit: contain;
   object-position: bottom center;
-  transform: scale(1.8); /* Massively scaled up to fill the viewport and offset blank boundaries */
-  transform-origin: bottom center;
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
@@ -339,6 +372,7 @@ body.poptu-active {
   padding: 10px 10px 10px;
   position: relative;
   margin: 4px 4px 6px;
+  flex-shrink: 0;
 }
 .fieldset > legend {
   position: absolute;
@@ -407,6 +441,7 @@ body.poptu-active {
   font-size: 11px;
   color: #444;
   padding: 4px 0 0;
+  flex-shrink: 0;
 }
 
 /* ----- error dialog ----- */
@@ -472,7 +507,7 @@ body.poptu-active {
   bottom: 0;
   background: #0b3d91;
   color: #fff;
-  padding: 10px 14px;
+  padding: 10px 14px max(10px, env(safe-area-inset-bottom, 0px));
   display: flex;
   gap: 22px;
   align-items: flex-start;
@@ -503,12 +538,32 @@ body.poptu-active {
 .taskbar-label { text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
 
 /* ----- responsive tweaks ----- */
+
+/* iPhone Pro Max & large phones (430px width, tall screens) */
 @media (max-width: 520px) {
-  .lcd-digit { width: 32px; height: 48px; }
-  .seg.horiz { left: 4px; right: 4px; height: 8px; clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%); }
-  .seg.vert  { width: 8px; height: 20px; clip-path: polygon(0 4px, 50% 0, 100% 4px, 100% calc(100% - 4px), 50% 100%, 0 calc(100% - 4px)); }
+  .poptu {
+    padding: max(6px, env(safe-area-inset-top, 0px)) max(4px, env(safe-area-inset-right, 0px))
+      var(--poptu-bottom-pad) max(4px, env(safe-area-inset-left, 0px));
+  }
+
+  .poptu-body {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  /* LCD digits slightly smaller on mobile but still prominent */
+  .lcd-wrap {
+    padding: 10px 4px 4px;
+  }
+  .lcd {
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .lcd-digit { width: 44px; height: 64px; }
+  .seg.horiz { left: 5px; right: 5px; height: 10px; clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%); }
+  .seg.vert  { width: 10px; height: 26px; clip-path: polygon(0 4px, 50% 0, 100% 4px, 100% calc(100% - 4px), 50% 100%, 0 calc(100% - 4px)); }
   .seg.a { top: 0; }
-  .seg.g { top: 20px; }
+  .seg.g { top: 27px; }
   .seg.d { bottom: 0; }
   .seg.b { top: 2px; right: 0; } .seg.c { bottom: 2px; right: 0; }
   .seg.f { top: 2px; left: 0; } .seg.e { bottom: 2px; left: 0; }
@@ -517,7 +572,32 @@ body.poptu-active {
   .ranking-num { width: 22px; height: 22px; font-size: 15px; border-width: 1.5px; }
   .ranking-faculty, .ranking-score { font-size: 12px; }
 
-  .poptu-taskbar { gap: 8px; padding: 8px; }
+  .poptu-taskbar {
+    gap: 8px;
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom, 0px));
+  }
   .taskbar-icon-img { width: 30px; height: 30px; }
   .taskbar-item { font-size: 10px; }
+
+  .lizard-stage {
+    min-height: clamp(11rem, 36vmin, 26rem);
+  }
+}
+
+/* Shorter mobile viewports — tighten LCD so chrome + mascot fit */
+@media (max-height: 950px) and (max-width: 520px) {
+  .lcd-wrap {
+    padding: 8px 4px 2px;
+  }
+  .lcd-digit { width: 38px; height: 56px; }
+  .seg.horiz { left: 4px; right: 4px; height: 8px; }
+  .seg.vert { width: 8px; height: 22px; }
+  .seg.g { top: 24px; }
+}
+
+/* Wide windows: give the stage a strong minimum height so the lizard stays hero-sized */
+@media (min-width: 521px) {
+  .lizard-stage {
+    min-height: clamp(12rem, 36vh, 28rem);
+  }
 }
