@@ -1,7 +1,5 @@
 [
   { "id": "team_phromtham", "emoji": "✨", "name": "ทีมพร้อมธรรม" },
-  { "id": "team_dao", "emoji": "⭐", "name": "ทีมดาว" },
-  { "id": "team_diw", "emoji": "💫", "name": "ทีมดิว" },
   { "id": "team_rangsit", "emoji": "🏢", "name": "ทีมรังสิต" },
   { "id": "team_lampang", "emoji": "🏔️", "name": "ทีมลำปาง" },
   { "id": "team_thaprachan", "emoji": "🛕", "name": "ทีมท่าพระจันทร์" },
@@ -29,5 +27,7 @@
   { "id": "glob", "emoji": "🌐", "name": "วิทยาลัยโลกคดีศึกษา" },
   { "id": "cicm", "emoji": "⚕️", "name": "วิทยาลัยแพทยศาสตร์นานาชาติจุฬาภรณ์" },
   { "id": "inter", "emoji": "🌏", "name": "วิทยาลัยนานาชาติปรีดี พนมยงค์" },
+  { "id": "interdisc", "emoji": "🧩", "name": "วิทยาลัยสหวิทยาการ" },
+  { "id": "innov", "emoji": "💡", "name": "วิทยาลัยนวัตกรรม" },
   { "id": "siit", "emoji": "🔧", "name": "สถาบันเทคโนโลยีนานาชาติสิรินธร" }
 ]

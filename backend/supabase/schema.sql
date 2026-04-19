@@ -84,8 +84,6 @@ create policy "read faculty_scores"
 -- Upsert so re-running doesn't reset counts.
 insert into public.faculty_scores (id, name, emoji, count) values
   ('team_phromtham', 'ทีมพร้อมธรรม',                    '✨', 0),
-  ('team_dao',       'ทีมดาว',                          '⭐', 0),
-  ('team_diw',       'ทีมดิว',                          '💫', 0),
   ('team_rangsit',   'ทีมรังสิต',                       '🏢', 0),
   ('team_lampang',   'ทีมลำปาง',                        '🏔️', 0),
   ('team_thaprachan', 'ทีมท่าพระจันทร์',                '🛕', 0),
@@ -113,6 +111,8 @@ insert into public.faculty_scores (id, name, emoji, count) values
   ('glob',   'วิทยาลัยโลกคดีศึกษา',                    '🌐', 0),
   ('cicm',   'วิทยาลัยแพทยศาสตร์นานาชาติจุฬาภรณ์',    '⚕️', 0),
   ('inter',  'วิทยาลัยนานาชาติปรีดี พนมยงค์',          '🌏', 0),
+  ('interdisc', 'วิทยาลัยสหวิทยาการ',                 '🧩', 0),
+  ('innov',  'วิทยาลัยนวัตกรรม',                     '💡', 0),
   ('siit',   'สถาบันเทคโนโลยีนานาชาติสิรินธร',         '🔧', 0)
 on conflict (id) do update set
   name  = excluded.name,
