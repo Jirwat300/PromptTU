@@ -1,8 +1,6 @@
 import './index.css'
 import { useEffect, useMemo, useState } from 'react'
 import ptLogo from './assets/pt-logo-dpi.svg'
-import daoImage from './assets/Dao.png'
-import diwImage from './assets/Diw.png'
 
 const navItems = [
   { label: 'เกี่ยวกับพรรค', href: '#about' },
@@ -45,8 +43,6 @@ const membershipCards = [
 
 function Home() {
   const [scrollY, setScrollY] = useState(0)
-  /** 'dao' | 'diw' | null — ควบคุมโฟกัสทีละคนบนเดสก์ท็อป (เลเยอร์ hit แยกซ้าย/ขวา) */
-  const [candidateHover, setCandidateHover] = useState(null)
   const [timeLeft, setTimeLeft] = useState(getTimeLeft)
 
   // อัปเดตทุกวินาที (หน้าเว็บ tab ทำงานเมื่อมองเห็น — ไม่มี tick เพิ่มโหลด)
@@ -77,16 +73,6 @@ function Home() {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [])
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 721px)')
-    const clearWhenNarrow = () => {
-      if (!mq.matches) setCandidateHover(null)
-    }
-    mq.addEventListener('change', clearWhenNarrow)
-    clearWhenNarrow()
-    return () => mq.removeEventListener('change', clearWhenNarrow)
   }, [])
 
   const heroStyle = useMemo(() => {
@@ -120,13 +106,7 @@ function Home() {
 
         <div className="hero-layer" style={heroStyle}>
           <div className="hero-content">
-            <div
-              className={
-                candidateHover
-                  ? `hero-visual hero-visual--hover-${candidateHover}`
-                  : 'hero-visual'
-              }
-            >
+            <div className="hero-visual">
               <div className="hero-copy sr-only">
                 <p>Promoted Candidate Election</p>
                 <h1>คุณพร้อมเปลี่ยนธรรมศาสตร์ไปพร้อมเราไหม</h1>
@@ -149,53 +129,6 @@ function Home() {
                   กาเบอร์
                 </p>
                 <p className="hero-election-number">3</p>
-              </div>
-
-              <div className="hero-candidate-dim" aria-hidden="true" />
-
-              <div className="dao-spot">
-                <div className="dao-hover-label" aria-hidden="true">
-                  <h3>พพ.ดาว</h3>
-                  <p className="candidate-sub">ผู้ลงสมัครตำแหน่งประธานนักศึกษา</p>
-                  <ul className="candidate-bio-list">
-                    <li>มุ่งมั่นสร้างธรรมศาสตร์ที่ทุกคนมีส่วนร่วม</li>
-                    <li>มีประสบการณ์การทำงานเพื่อส่วนรวม</li>
-                    <li>มีปัญหาปรึกษาดาว เราพร้อมช่วยเหลือ</li>
-                  </ul>
-                </div>
-                <img src={daoImage} alt="Dao candidate" className="candidate-photo dao-photo" />
-              </div>
-
-              <div className="diw-spot">
-                <div className="diw-hover-label" aria-hidden="true">
-                  <h3>พพ.ดิว</h3>
-                  <p className="candidate-sub">ผู้ลงสมัครตำแหน่งประธานสภานักศึกษา</p>
-                  <ul className="candidate-bio-list">
-                    <li>เชี่ยวชาญการทำงานจัดการภายในองค์กร</li>
-                    <li>พร้อมเป็นกระบอกเสียงให้ทุกกลุ่ม</li>
-                    <li>ธรรมศาสตร์และการดิว จัดการได้ตามนโยบาย</li>
-                  </ul>
-                </div>
-                <img src={diwImage} alt="Diw candidate" className="candidate-photo diw-photo" />
-              </div>
-
-              <div
-                className="candidate-hit-layer"
-                aria-hidden="true"
-                onMouseLeave={() => setCandidateHover(null)}
-              >
-                <div
-                  className="candidate-hit candidate-hit--dao"
-                  onMouseEnter={() => setCandidateHover('dao')}
-                />
-                <div
-                  className="candidate-hit candidate-hit--gap"
-                  onMouseEnter={() => setCandidateHover(null)}
-                />
-                <div
-                  className="candidate-hit candidate-hit--diw"
-                  onMouseEnter={() => setCandidateHover('diw')}
-                />
               </div>
             </div>
           </div>
