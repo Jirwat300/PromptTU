@@ -280,6 +280,15 @@ body.poptu-active #root {
   overflow-anchor: none;
 }
 
+/* ----- Rankings stack: window + floating bar-chart (not inside Win95 body) ----- */
+.poptu-rankings-wrap {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  align-self: stretch;
+  /* Reserve space so the absolute button does not overlap the LCD */
+  padding-bottom: 14px;
+}
 /* ----- inner Rankings window ----- */
 .rankings-window {
   background: var(--win-face);
@@ -300,18 +309,7 @@ body.poptu-active #root {
   flex-direction: column;
   gap: 4px;
 }
-.rankings-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 0;
-  padding-top: 2px;
-  min-width: 0;
-  flex-shrink: 0;
-}
-/* Icon-only: opens full ranking table — keeps mobile faculty row from being squeezed */
 .rankings-chart-btn {
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -329,11 +327,28 @@ body.poptu-active #root {
     inset -1px -1px 0 rgba(0, 0, 0, 0.35),
     2px 2px 0 rgba(0, 0, 0, 0.2);
 }
+.rankings-chart-btn--float {
+  position: absolute;
+  right: max(6px, 1.5%);
+  bottom: 0;
+  z-index: 4;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.45),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.35),
+    2px 3px 0 rgba(0, 0, 0, 0.28),
+    0 5px 10px rgba(0, 0, 0, 0.18);
+}
 .rankings-chart-btn:hover {
   filter: brightness(1.08);
 }
 .rankings-chart-btn:active {
   box-shadow: inset 2px 2px 3px rgba(0, 0, 0, 0.45);
+  padding: 1px 0 0 1px;
+}
+.rankings-chart-btn--float:active {
+  box-shadow:
+    inset 2px 2px 3px rgba(0, 0, 0, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.15);
   padding: 1px 0 0 1px;
 }
 .rankings-chart-btn:focus-visible {

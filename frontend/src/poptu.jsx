@@ -623,63 +623,63 @@ export default function PopTu({ onNavigateToComingSoon }) {
         </div>
 
         <div className="poptu-body">
-          {/* Rankings window */}
-          <section className="rankings-window" aria-label="Rankings">
-            <header className="win-titlebar">
-              <span className="win-title">Rankings</span>
-              <div className="win-title-btns">
-                <button type="button" className="win-btn" aria-label="Minimise">_</button>
-                <button type="button" className="win-btn" aria-label="Maximise">□</button>
-                <button type="button" className="win-btn" aria-label="Close">×</button>
-              </div>
-            </header>
-            <div className="rankings-body">
-              {rankings.length > 0 ? (
-                <div className="ranking-row--combined" role="list">
-                  {rankings.map((r, i) => (
-                    <div key={r.id} className="ranking-row" role="listitem">
-                      <span className="ranking-num">{i + 1}</span>
-                      <span className="ranking-faculty" title={r.name} lang="th">
-                        <span className="poptu-zoom-text">{r.name}</span>
-                      </span>
-                      <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
-                    </div>
-                  ))}
+          {/* Rankings window + floating chart button (outside the Win95 chrome) */}
+          <div className="poptu-rankings-wrap">
+            <section className="rankings-window" aria-label="Rankings">
+              <header className="win-titlebar">
+                <span className="win-title">Rankings</span>
+                <div className="win-title-btns">
+                  <button type="button" className="win-btn" aria-label="Minimise">_</button>
+                  <button type="button" className="win-btn" aria-label="Maximise">□</button>
+                  <button type="button" className="win-btn" aria-label="Close">×</button>
                 </div>
-              ) : (
-                <div className="ranking-row--combined ranking-row--loading" style={{ opacity: 0.6 }}>
-                  <div className="ranking-row ranking-row--placeholder">
-                    <span className="ranking-faculty" lang="th">
-                      <span className="poptu-zoom-text">กำลังโหลด…</span>
-                    </span>
+              </header>
+              <div className="rankings-body">
+                {rankings.length > 0 ? (
+                  <div className="ranking-row--combined" role="list">
+                    {rankings.map((r, i) => (
+                      <div key={r.id} className="ranking-row" role="listitem">
+                        <span className="ranking-num">{i + 1}</span>
+                        <span className="ranking-faculty" title={r.name} lang="th">
+                          <span className="poptu-zoom-text">{r.name}</span>
+                        </span>
+                        <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              )}
-              <div className="rankings-footer">
-                <button
-                  type="button"
-                  className="rankings-chart-btn"
-                  onClick={() => setAllFacultiesOpen(true)}
-                  aria-label="ดูคะแนนทุกคณะ"
-                  title="ดูคะแนนทุกคณะ"
-                >
-                  <svg
-                    className="rankings-chart-icon"
-                    viewBox="0 0 24 24"
-                    width="18"
-                    height="18"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <rect x="3" y="14" width="4" height="7" fill="currentColor" />
-                    <rect x="9" y="9" width="4" height="12" fill="currentColor" />
-                    <rect x="15" y="12" width="4" height="9" fill="currentColor" />
-                    <rect x="21" y="6" width="3" height="15" fill="currentColor" />
-                  </svg>
-                </button>
+                ) : (
+                  <div className="ranking-row--combined ranking-row--loading" style={{ opacity: 0.6 }}>
+                    <div className="ranking-row ranking-row--placeholder">
+                      <span className="ranking-faculty" lang="th">
+                        <span className="poptu-zoom-text">กำลังโหลด…</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </section>
+            </section>
+            <button
+              type="button"
+              className="rankings-chart-btn rankings-chart-btn--float"
+              onClick={() => setAllFacultiesOpen(true)}
+              aria-label="ดูคะแนนทุกคณะ"
+              title="ดูคะแนนทุกคณะ"
+            >
+              <svg
+                className="rankings-chart-icon"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect x="3" y="14" width="4" height="7" fill="currentColor" />
+                <rect x="9" y="9" width="4" height="12" fill="currentColor" />
+                <rect x="15" y="12" width="4" height="9" fill="currentColor" />
+                <rect x="21" y="6" width="3" height="15" fill="currentColor" />
+              </svg>
+            </button>
+          </div>
 
           {/* LCD counter */}
           <div className="lcd-wrap">
