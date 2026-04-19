@@ -75,7 +75,7 @@ body.poptu-active #root {
   --poptu-row-text: 16px;
   --poptu-row-line: 1.25;
   --poptu-floater: calc(var(--poptu-row-text) * 1.625);
-  /* Thai name visual boost (transform only — does not change flex/grid track sizes) */
+  /* Thai name visual boost (transform only — does not change flex track sizes) */
   --poptu-th-zoom: 2.16;
 
   flex: 1 1 auto;
@@ -374,8 +374,8 @@ body.poptu-active #root {
   overflow: hidden;
 }
 .ranking-row--combined .ranking-row {
-  display: grid;
-  grid-template-columns: 42px 1fr auto;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
@@ -383,6 +383,7 @@ body.poptu-active #root {
   background: var(--win-face);
   border: none;
   border-bottom: 1px dashed #a0a0a0;
+  min-width: 0;
 }
 .ranking-row--combined .ranking-row:last-child {
   border-bottom: none;
@@ -391,11 +392,11 @@ body.poptu-active #root {
   padding: 6px 10px;
 }
 .ranking-row--combined .ranking-row--placeholder {
-  grid-template-columns: 1fr;
   border-bottom: none;
-  justify-items: center;
+  justify-content: center;
 }
 .ranking-num {
+  flex: 0 0 auto;
   width: 32px;
   height: 32px;
   display: inline-flex;
@@ -409,6 +410,7 @@ body.poptu-active #root {
   border: 2px dashed var(--title-blue);
 }
 .ranking-faculty {
+  flex: 1 1 0;
   min-width: 0;
   font-size: var(--poptu-row-text);
   line-height: var(--poptu-row-line);
@@ -418,12 +420,15 @@ body.poptu-active #root {
   text-overflow: ellipsis;
 }
 .ranking-score {
+  flex: 0 0 auto;
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: var(--poptu-row-text);
   line-height: var(--poptu-row-line);
   color: var(--title-blue);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
 }
 .poptu .rankings-window .ranking-faculty[lang="th"] {
   font-size: var(--poptu-row-text);
@@ -819,18 +824,21 @@ body.poptu-active #root {
   box-shadow: inset 1px 1px 0 #404040;
 }
 .all-faculties-row {
-  display: grid;
-  grid-template-columns: 30px 1fr minmax(7.25rem, auto);
-  gap: 10px;
+  display: flex;
+  flex-direction: row;
   align-items: center;
+  gap: 10px;
   padding: 8px 10px;
   border-bottom: 1px solid #d4d4d4;
   font-size: 13px;
+  min-width: 0;
 }
 .all-faculties-row:last-child {
   border-bottom: none;
 }
 .all-faculties-rank {
+  flex: 0 0 2rem;
+  width: 2rem;
   font-family: 'MS Sans Serif', 'Courier New', monospace;
   font-weight: 700;
   font-size: 12px;
@@ -838,6 +846,7 @@ body.poptu-active #root {
   text-align: center;
 }
 .all-faculties-meta {
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -861,6 +870,7 @@ body.poptu-active #root {
   vertical-align: middle;
 }
 .all-faculties-score {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
@@ -869,6 +879,7 @@ body.poptu-active #root {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-align: right;
+  min-width: min(7.25rem, 34%);
 }
 .all-faculties-score-num {
   font-family: 'MS Sans Serif', 'Courier New', monospace;
@@ -983,7 +994,6 @@ body.poptu-active #root {
     gap: 3px;
   }
   .ranking-row--combined .ranking-row {
-    grid-template-columns: 22px 1fr auto;
     gap: 4px;
     padding: 2px 5px;
   }
@@ -1289,7 +1299,6 @@ body.poptu-active #root {
   }
   .ranking-row--combined .ranking-row {
     padding: 8px 14px;
-    grid-template-columns: 46px 1fr auto;
     gap: 14px;
   }
   .ranking-num {
