@@ -219,6 +219,54 @@ function ErrorDialog({ onOk }) {
   )
 }
 
+/** Full leaderboard: every faculty + global POP count */
+function AllFacultiesDialog({ rows, onClose }) {
+  return (
+    <div
+      className="poptu-modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="all-fac-title"
+      onClick={onClose}
+    >
+      <div
+        className="win-dialog win-dialog--all-faculties"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="win-titlebar">
+          <span className="win-title" id="all-fac-title" lang="th">คะแนนทุกคณะ</span>
+          <div className="win-title-btns">
+            <button type="button" className="win-btn" aria-label="Minimise">_</button>
+            <button type="button" className="win-btn" aria-label="Maximise">□</button>
+            <button type="button" className="win-btn" onClick={onClose} aria-label="Close">×</button>
+          </div>
+        </div>
+        <div className="win-dialog-body win-dialog-body--all-faculties">
+          <ul className="all-faculties-list" lang="th">
+            {rows.map((r) => (
+              <li key={r.id} className="all-faculties-row">
+                <span className="all-faculties-rank" aria-hidden="true">{r.rank}</span>
+                <span className="all-faculties-meta">
+                  <span className="all-faculties-emoji" aria-hidden="true">{r.emoji}</span>
+                  <span className="all-faculties-name poptu-zoom-text">{r.name}</span>
+                </span>
+                <span className="all-faculties-score" translate="no">
+                  {r.score.toLocaleString('en-US')} POP
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="win-dialog-actions">
+          <button type="button" className="w95-btn" lang="th" onClick={onClose} autoFocus>
+            ปิด
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** “Ready?” taskbar — teaser window (Win95 chrome) */
 function ReadyDialog({ onClose }) {
   return (
@@ -272,6 +320,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [caught, setCaught] = useState(false)
   const [errOpen, setErrOpen] = useState(false)
   const [readyOpen, setReadyOpen] = useState(false)
+  const [allFacultiesOpen, setAllFacultiesOpen] = useState(false)
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
   const lizardPopAnchorRef = useRef(null)
@@ -526,6 +575,17 @@ export default function PopTu({ onNavigateToComingSoon }) {
       .slice(0, 3)
   }, [scores])
 
+  /** Full table for modal — includes unflushed pops for the selected faculty (sessionClicks bumps this). */
+  const allFacultyRows = useMemo(() => {
+    const pending = facultyId ? pendingDeltaRef.current : 0
+    return FACULTIES.map((f) => ({
+      ...f,
+      score: (scores[f.id] ?? 0) + (f.id === facultyId ? pending : 0),
+    }))
+      .sort((a, b) => b.score - a.score)
+      .map((row, idx) => ({ ...row, rank: idx + 1 }))
+  }, [scores, facultyId, sessionClicks])
+
   const currentFaculty = FACULTIES.find((f) => f.id === facultyId)
 
   return (
@@ -559,22 +619,37 @@ export default function PopTu({ onNavigateToComingSoon }) {
               </div>
             </header>
             <div className="rankings-body">
-              {rankings.map((r, i) => (
-                <div key={r.id} className="ranking-row">
-                  <span className="ranking-num">{i + 1}</span>
-                  <span className="ranking-faculty" title={r.name} lang="th">
-                    <span className="poptu-zoom-text">{r.name}</span>
-                  </span>
-                  <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
+              {rankings.length > 0 ? (
+                <div className="ranking-row--combined" role="list">
+                  {rankings.map((r, i) => (
+                    <div key={r.id} className="ranking-row" role="listitem">
+                      <span className="ranking-num">{i + 1}</span>
+                      <span className="ranking-faculty" title={r.name} lang="th">
+                        <span className="poptu-zoom-text">{r.name}</span>
+                      </span>
+                      <span className="ranking-score">{r.score.toLocaleString('en-US')} POP</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {rankings.length === 0 && (
-                <div className="ranking-row" style={{ opacity: 0.6 }}>
-                  <span className="ranking-faculty" lang="th">
-                    <span className="poptu-zoom-text">กำลังโหลด…</span>
-                  </span>
+              ) : (
+                <div className="ranking-row--combined ranking-row--loading" style={{ opacity: 0.6 }}>
+                  <div className="ranking-row ranking-row--placeholder">
+                    <span className="ranking-faculty" lang="th">
+                      <span className="poptu-zoom-text">กำลังโหลด…</span>
+                    </span>
+                  </div>
                 </div>
               )}
+              <div className="rankings-footer">
+                <button
+                  type="button"
+                  className="rankings-more-btn"
+                  lang="th"
+                  onClick={() => setAllFacultiesOpen(true)}
+                >
+                  เพิ่มเติม
+                </button>
+              </div>
             </div>
           </section>
 
@@ -651,6 +726,10 @@ export default function PopTu({ onNavigateToComingSoon }) {
       {errOpen && <ErrorDialog onOk={closeError} />}
 
       {readyOpen && <ReadyDialog onClose={() => setReadyOpen(false)} />}
+
+      {allFacultiesOpen && (
+        <AllFacultiesDialog rows={allFacultyRows} onClose={() => setAllFacultiesOpen(false)} />
+      )}
 
       {/* bottom taskbar */}
       <nav className="poptu-taskbar" aria-label="Taskbar">

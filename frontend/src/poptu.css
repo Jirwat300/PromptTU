@@ -279,14 +279,80 @@ body.poptu-active #root {
   flex-direction: column;
   gap: 8px;
 }
-.ranking-row {
+.rankings-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #a0a0a0;
+}
+/* Matches Win95 title-bar gradient + chrome (POPTU / Rankings strip) */
+.rankings-more-btn {
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: max(12px, calc(var(--poptu-row-text) - 1px));
+  font-weight: 700;
+  line-height: var(--poptu-row-line);
+  color: #fff;
+  background: var(--title-blue-grad);
+  border: 2px solid var(--win-dark);
+  border-radius: 0;
+  padding: 5px 14px;
+  min-width: auto;
+  cursor: pointer;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.35),
+    2px 2px 0 rgba(0, 0, 0, 0.2);
+}
+.rankings-more-btn:hover {
+  filter: brightness(1.08);
+}
+.rankings-more-btn:active {
+  box-shadow:
+    inset 2px 2px 3px rgba(0, 0, 0, 0.45);
+  padding: 6px 13px 4px 15px;
+}
+.rankings-more-btn:focus-visible {
+  outline: 2px dotted #fff;
+  outline-offset: 2px;
+}
+.poptu .rankings-more-btn[lang="th"] {
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: calc(var(--poptu-row-text) * 1.05);
+  line-height: var(--poptu-row-line);
+  font-weight: 400;
+}
+/* One dashed border around the block; three stacked rows inside (same layout as before). */
+.ranking-row--combined {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  background: var(--win-face);
+  border: 1px dashed #666;
+  overflow: hidden;
+}
+.ranking-row--combined .ranking-row {
   display: grid;
   grid-template-columns: 42px 1fr auto;
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
+  margin: 0;
   background: var(--win-face);
-  border: 1px dashed #666;
+  border: none;
+  border-bottom: 1px dashed #a0a0a0;
+}
+.ranking-row--combined .ranking-row:last-child {
+  border-bottom: none;
+}
+.ranking-row--combined.ranking-row--loading {
+  padding: 6px 10px;
+}
+.ranking-row--combined .ranking-row--placeholder {
+  grid-template-columns: 1fr;
+  border-bottom: none;
+  justify-items: center;
 }
 .ranking-num {
   width: 32px;
@@ -343,7 +409,7 @@ body.poptu-active #root {
   display: inline-flex;
   gap: 8px;
   padding: 12px 16px;
-  background: transparent;
+  background: var(--lcd-plate);
   border: none;
   box-shadow: none;
 }
@@ -356,12 +422,16 @@ body.poptu-active #root {
     inset 2px 2px 0 #ffffff,
     inset -2px -2px 0 #6b6b6b;
 }
-/* Anti-cheat: Thai red text (AMD), no 7-segment / no dark plate */
+/* Anti-cheat: Thai red text (AMD), no 7-segment */
 .lcd.lcd--caught {
-  background: transparent;
+  background: var(--lcd-plate);
   padding: 6px 10px 10px;
   max-width: 100%;
   box-sizing: border-box;
+  border: 5px solid #000000;
+  box-shadow:
+    inset 2px 2px 0 #ffffff,
+    inset -2px -2px 0 #6b6b6b;
 }
 .poptu .lcd--caught .lcd-caught-msg {
   font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
@@ -371,9 +441,7 @@ body.poptu-active #root {
   color: #d40000;
   text-align: center;
   display: block;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.95),
-    0 1px 0 rgba(255, 255, 255, 0.6);
+  text-shadow: 1px 1px 0 #fff;
 }
 
 .lcd-digit {
@@ -386,16 +454,10 @@ body.poptu-active #root {
 .seg {
   position: absolute;
 }
-/* Unlit: #002BFF / #FFFFFF pixel checker (dither on “off” segments) */
+/* Unlit: solid (no transparent checker — clearer digits) */
 .lcd.lcd--on .seg {
-  background-color: var(--lcd-off-base);
-  background-image:
-    linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg)),
-    linear-gradient(45deg, var(--lcd-off-fg) 25%, transparent 25%, transparent 75%, var(--lcd-off-fg) 75%, var(--lcd-off-fg));
-  background-size: 4px 4px;
-  background-position: 0 0, 2px 2px;
-  image-rendering: crisp-edges;
-  image-rendering: pixelated;
+  background-color: #b4c4f0;
+  background-image: none;
 }
 /* Lit: solid #002BFF */
 .lcd.lcd--on .seg.on {
@@ -530,7 +592,7 @@ body.poptu-active #root {
 /* ----- Faculty group box ----- */
 .fieldset {
   background: #fff;
-  border: 5px solid var(--win-dark);
+  border: 1px solid var(--win-dark);
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
   position: relative;
@@ -540,7 +602,7 @@ body.poptu-active #root {
 }
 .fieldset > legend {
   position: absolute;
-  top: -9px;
+  top: -7px;
   left: 10px;
   background: var(--win-face);
   padding: 0 6px;
@@ -690,6 +752,80 @@ body.poptu-active #root {
   line-height: 1.45;
 }
 
+/* All faculties — scrollable list */
+.win-dialog--all-faculties {
+  width: min(400px, 100%);
+  max-height: min(88vh, 580px);
+  display: flex;
+  flex-direction: column;
+}
+.win-dialog-body--all-faculties {
+  padding: 8px 12px 10px;
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.all-faculties-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: min(50vh, 400px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #808080;
+  background: #fff;
+  box-shadow: inset 1px 1px 0 #404040;
+}
+.all-faculties-row {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid #d4d4d4;
+  font-size: 13px;
+}
+.all-faculties-row:last-child {
+  border-bottom: none;
+}
+.all-faculties-rank {
+  font-family: 'MS Sans Serif', 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--title-blue);
+  text-align: center;
+}
+.all-faculties-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.all-faculties-emoji {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+.all-faculties-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.poptu-modal-root .all-faculties-name.poptu-zoom-text {
+  display: inline-block;
+  transform: scale(var(--poptu-th-zoom));
+  transform-origin: left center;
+  vertical-align: middle;
+}
+.all-faculties-score {
+  font-weight: 700;
+  color: var(--title-blue);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* ----- taskbar at the bottom of the page ----- */
 .poptu-taskbar {
   position: fixed;
@@ -788,7 +924,7 @@ body.poptu-active #root {
     padding: 4px 5px 5px;
     gap: 3px;
   }
-  .ranking-row {
+  .ranking-row--combined .ranking-row {
     grid-template-columns: 22px 1fr auto;
     gap: 4px;
     padding: 2px 5px;
@@ -823,7 +959,7 @@ body.poptu-active #root {
     flex-shrink: 0;
   }
   .fieldset > legend {
-    top: -8px;
+    top: -6px;
     left: 10px;
     padding: 0 5px;
   }
@@ -895,9 +1031,12 @@ body.poptu-active #root {
     padding: 3px 4px 4px;
     gap: 2px;
   }
-  .ranking-row {
+  .ranking-row--combined .ranking-row {
     padding: 2px 4px;
     gap: 3px;
+  }
+  .ranking-row--combined.ranking-row--loading {
+    padding: 4px 6px;
   }
   .ranking-num {
     width: 18px;
@@ -998,7 +1137,7 @@ body.poptu-active #root {
     padding: 12px;
     gap: 9px;
   }
-  .ranking-row {
+  .ranking-row--combined .ranking-row {
     padding: 6px 12px;
     gap: 12px;
   }
@@ -1090,7 +1229,7 @@ body.poptu-active #root {
     padding: 13px;
     gap: 10px;
   }
-  .ranking-row {
+  .ranking-row--combined .ranking-row {
     padding: 8px 14px;
     grid-template-columns: 46px 1fr auto;
     gap: 14px;
@@ -1180,7 +1319,7 @@ body.poptu-active #root {
     padding: 14px;
     gap: 11px;
   }
-  .ranking-row {
+  .ranking-row--combined .ranking-row {
     padding: 9px 16px;
     gap: 15px;
   }
