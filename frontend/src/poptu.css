@@ -277,14 +277,13 @@ body.poptu-active #root {
   padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 .rankings-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px dashed #a0a0a0;
+  margin-top: 0;
+  padding-top: 0;
 }
 /* Matches Win95 title-bar gradient + chrome (POPTU / Rankings strip) */
 .rankings-more-btn {
