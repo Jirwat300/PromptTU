@@ -70,7 +70,7 @@ const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') 
 const RANKING_REFRESH_MS = 10000         // leaderboard poll while tab visible (lower = more network + re-renders)
 const RANKING_REFRESH_HIDDEN_MS = 30000 // slow poll when tab in background (saves work + data)
 /** While “คะแนนทุกคณะ” modal is open, poll scores faster so it tracks the board + other users. */
-const ALL_FACULTIES_POLL_MS = 3000
+const ALL_FACULTIES_POLL_MS = 2000
 const POP_FLUSH_MS = 800                  // batch window for /api/ranking/pop
 /** Cap simultaneous “+1” floaters — rapid clicks used to grow DOM without bound. */
 const MAX_FLOATERS = 12
@@ -394,21 +394,26 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const json = await res.json()
       if (gen !== scoresFetchGenRef.current) return
       if (json?.scores) {
-        // Merge server truth with any still-pending optimistic adds so the
-        // user doesn't see their own clicks roll back during a refresh.
+        // Merge server truth with in-flight RPC (optimisticRef) AND clicks not yet
+        // flushed (pendingDeltaRef); omitting pending used to overwrite scores and
+        // made the modal / board look non–real-time after each poll.
         const merged = { ...json.scores }
+        for (const [id, raw] of Object.entries(merged)) {
+          merged[id] = Number(raw) || 0
+        }
         for (const [id, add] of Object.entries(optimisticRef.current)) {
           merged[id] = (merged[id] ?? 0) + add
         }
-        startTransition(() => {
-          if (gen !== scoresFetchGenRef.current) return
-          setScores(merged)
-        })
+        if (facultyId && pendingDeltaRef.current > 0) {
+          merged[facultyId] = (merged[facultyId] ?? 0) + pendingDeltaRef.current
+        }
+        if (gen !== scoresFetchGenRef.current) return
+        setScores(merged)
       }
     } catch {
       /* network hiccup — we'll try again on the next poll */
     }
-  }, [])
+  }, [facultyId])
 
   useEffect(() => {
     const pollMs = () => (document.hidden ? RANKING_REFRESH_HIDDEN_MS : RANKING_REFRESH_MS)
@@ -651,6 +656,9 @@ export default function PopTu({ onNavigateToComingSoon }) {
                 </div>
               )}
               <div className="rankings-footer">
+                <p className="rankings-footer-note" lang="th">
+                  สื่ออิเล็กทรอนิกส์และเว็บไซต์ผลิตโดย พรรคพร้อมธรรม
+                </p>
                 <button
                   type="button"
                   className="rankings-more-btn"
@@ -661,9 +669,6 @@ export default function PopTu({ onNavigateToComingSoon }) {
                 </button>
               </div>
             </div>
-            <p className="rankings-disclaimer" lang="th">
-              สื่ออิเล็กทรอนิกส์และเว็บไซต์ผลิตโดย พรรคพร้อมธรรม
-            </p>
           </section>
 
           {/* LCD counter */}

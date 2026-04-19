@@ -193,12 +193,12 @@ body.poptu-active #root {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-/* Thai titles in modals — 2005_iannnnnAMD (faculty picker, คะแนนทุกคณะ) */
+/* Thai titles in modals — 2005_iannnnnAMD (faculty picker, คะแนนทุกคณะ); ~2× prior size */
 .poptu-modal-root .win-dialog .win-titlebar .win-title.win-title--font-2005 {
   font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
   font-weight: 400;
-  font-size: clamp(13px, 3.5vw, 17px);
-  line-height: 1.22;
+  font-size: clamp(26px, 7vw, 34px);
+  line-height: 1.15;
   white-space: normal;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -207,6 +207,12 @@ body.poptu-active #root {
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+}
+.poptu-modal-root .win-dialog > .win-titlebar {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  min-height: 2.75rem;
+  align-items: center;
 }
 .win-title-btns {
   display: flex;
@@ -288,25 +294,6 @@ body.poptu-active #root {
 .rankings-window .win-title {
   font-size: var(--poptu-row-text);
 }
-/* Credit under Rankings — max 2 lines, 2005 font */
-.rankings-disclaimer {
-  margin: 0;
-  padding: 2px 8px 6px;
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: clamp(8px, 2.65vw, 11px);
-  line-height: 1.3;
-  font-weight: 400;
-  text-align: center;
-  color: #1a1a1a;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  word-break: break-word;
-  max-width: 100%;
-  box-sizing: border-box;
-}
 .rankings-body {
   padding: 10px;
   display: flex;
@@ -315,12 +302,33 @@ body.poptu-active #root {
 }
 .rankings-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 0;
   padding-top: 0;
+  min-width: 0;
+}
+.rankings-footer-note {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: clamp(8px, 2.35vw, 10px);
+  line-height: 1.25;
+  font-weight: 400;
+  text-align: left;
+  color: #1a1a1a;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
 }
 /* Matches Win95 title-bar gradient + chrome (POPTU / Rankings strip) */
 .rankings-more-btn {
+  flex-shrink: 0;
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: max(12px, calc(var(--poptu-row-text) - 1px));
   font-weight: 700;
@@ -625,7 +633,7 @@ body.poptu-active #root {
 /* ----- Faculty group box ----- */
 .fieldset {
   background: #fff;
-  border: 1px solid var(--win-dark);
+  border: 2px solid var(--win-dark);
   box-shadow: inset -1px -1px 0 var(--win-light);
   padding: 9px 10px 9px;
   position: relative;
@@ -635,7 +643,7 @@ body.poptu-active #root {
 }
 .fieldset > legend {
   position: absolute;
-  top: -7px;
+  top: -8px;
   left: 10px;
   background: var(--win-face);
   padding: 0 6px;
@@ -1009,7 +1017,7 @@ body.poptu-active #root {
     flex-shrink: 0;
   }
   .fieldset > legend {
-    top: -6px;
+    top: -7px;
     left: 10px;
     padding: 0 5px;
   }
