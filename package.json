@@ -1,9 +1,12 @@
 {
   "name": "tupt-monorepo",
   "private": true,
-  "description": "Vercel root: builds frontend/dist and mounts backend Express at /api via api/index.js",
+  "description": "Vercel root: npm workspaces install once; build frontend; API via api/[...slug].js",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "vercel-build": "node scripts/vercel-build.cjs",
-    "vercel-install": "node scripts/vercel-install.cjs"
+    "vercel-build": "npm run build -w frontend"
   }
 }
