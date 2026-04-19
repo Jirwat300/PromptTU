@@ -299,9 +299,11 @@ body.poptu-active #root {
   flex-shrink: 0;
   /* Isolate layout so leaderboard updates repaint less of the tree */
   contain: layout;
+  /* Slightly larger than --poptu-row-text so names + POP stay readable without Thai transform zoom */
+  --poptu-ranking-font: max(15px, calc(var(--poptu-row-text) * 1.16));
 }
 .rankings-window .win-title {
-  font-size: var(--poptu-row-text);
+  font-size: max(14px, calc(var(--poptu-ranking-font) * 0.98));
 }
 .rankings-body {
   padding: 10px;
@@ -399,7 +401,7 @@ body.poptu-active #root {
   align-items: center;
   justify-content: center;
   font-family: 'MS Sans Serif', 'Courier New', monospace;
-  font-size: 23px;
+  font-size: max(22px, calc(var(--poptu-ranking-font) * 1.28));
   font-weight: 700;
   color: var(--title-blue);
   background: #fff;
@@ -408,7 +410,7 @@ body.poptu-active #root {
 .ranking-faculty {
   flex: 1 1 0;
   min-width: 0;
-  font-size: var(--poptu-row-text);
+  font-size: var(--poptu-ranking-font);
   line-height: var(--poptu-row-line);
   color: #000;
   white-space: nowrap;
@@ -421,7 +423,7 @@ body.poptu-active #root {
   position: relative;
   z-index: 1;
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: var(--poptu-row-text);
+  font-size: var(--poptu-ranking-font);
   line-height: var(--poptu-row-line);
   color: var(--title-blue);
   font-weight: 700;
@@ -430,7 +432,7 @@ body.poptu-active #root {
   white-space: nowrap;
 }
 .poptu .rankings-window .ranking-faculty[lang="th"] {
-  font-size: var(--poptu-row-text);
+  font-size: var(--poptu-ranking-font);
   line-height: var(--poptu-row-line);
 }
 /* Rankings rows are too narrow for --poptu-th-zoom: scale paints over the POP column. */
@@ -441,7 +443,7 @@ body.poptu-active #root {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: calc(var(--poptu-row-text) * 1.06);
+  font-size: max(15px, calc(var(--poptu-ranking-font) * 1.06));
   line-height: var(--poptu-row-line);
 }
 .poptu .fieldset .faculty-name[lang="th"] .poptu-zoom-text {
@@ -726,8 +728,10 @@ body.poptu-active #root {
   outline-offset: -4px;
 }
 .poptu .fieldset .w95-btn[lang="th"] {
-  font-size: var(--poptu-row-text);
+  font-size: clamp(15px, calc(var(--poptu-row-text) * 1.24), 21px);
   line-height: var(--poptu-row-line);
+  padding: 5px 16px;
+  min-width: 76px;
 }
 
 /* ----- error dialog ----- */
@@ -839,7 +843,7 @@ body.poptu-active #root {
   gap: 10px;
   padding: 8px 10px;
   border-bottom: 1px solid #d4d4d4;
-  font-size: 13px;
+  font-size: clamp(14px, 3.8vw, 16px);
   min-width: 0;
 }
 .all-faculties-row:last-child {
@@ -850,7 +854,7 @@ body.poptu-active #root {
   width: 2rem;
   font-family: 'MS Sans Serif', 'Courier New', monospace;
   font-weight: 700;
-  font-size: 12px;
+  font-size: clamp(12px, 3.2vw, 14px);
   color: var(--title-blue);
   text-align: center;
 }
@@ -876,8 +880,8 @@ body.poptu-active #root {
   display: block;
   transform: none;
   max-width: 100%;
-  font-size: max(12px, calc(1em * 1.06));
-  line-height: 1.25;
+  font-size: max(14px, calc(1em * 1.08));
+  line-height: 1.28;
 }
 .all-faculties-score {
   flex: 0 0 auto;
@@ -896,14 +900,14 @@ body.poptu-active #root {
 }
 .all-faculties-score-num {
   font-family: 'MS Sans Serif', 'Courier New', monospace;
-  font-size: clamp(1.12rem, 4.6vw, 1.55rem);
+  font-size: clamp(1.22rem, 5vw, 1.72rem);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: 0.02em;
 }
 .all-faculties-score-suffix {
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: max(11px, clamp(0.72rem, 2.8vw, 0.95rem));
+  font-size: max(12px, clamp(0.8rem, 3vw, 1.05rem));
   font-weight: 700;
   opacity: 0.92;
 }
@@ -1013,7 +1017,7 @@ body.poptu-active #root {
   .ranking-num {
     width: 20px;
     height: 20px;
-    font-size: max(10px, calc(var(--poptu-row-text) * 0.92));
+    font-size: max(12px, calc(var(--poptu-ranking-font) * 0.9));
     border-width: 1px;
   }
   /* LCD digits slightly smaller on mobile but still prominent */
@@ -1122,7 +1126,7 @@ body.poptu-active #root {
   .ranking-num {
     width: 18px;
     height: 18px;
-    font-size: max(9px, calc(var(--poptu-row-text) * 0.88));
+    font-size: max(11px, calc(var(--poptu-ranking-font) * 0.86));
   }
   .lcd-wrap {
     padding: 3px 2px 1px;
@@ -1317,7 +1321,7 @@ body.poptu-active #root {
   .ranking-num {
     width: 36px;
     height: 36px;
-    font-size: 26px;
+    font-size: max(24px, calc(var(--poptu-ranking-font) * 1.22));
   }
   .lizard-stage {
     flex: 0 0 auto;
@@ -1406,7 +1410,7 @@ body.poptu-active #root {
   .ranking-num {
     width: 38px;
     height: 38px;
-    font-size: 28px;
+    font-size: max(26px, calc(var(--poptu-ranking-font) * 1.26));
   }
 
   .lizard-stage {
