@@ -34,6 +34,7 @@ import ErrorDialog from './modals/ErrorDialog.jsx'
 import FacultyPicker from './modals/FacultyPicker.jsx'
 import ReadyDialog from './modals/ReadyDialog.jsx'
 import { loadPoptuUserState, writePoptuUserState } from './userStateStorage.js'
+import { sendPoptuPageView } from '../analytics.js'
 
 const PERSISTED_FACULTY_IDS = FACULTIES.map((f) => f.id)
 const PERSISTED_INIT = loadPoptuUserState(PERSISTED_FACULTY_IDS)
@@ -76,6 +77,10 @@ export default function PopTu({ onNavigateToComingSoon }) {
   useEffect(() => {
     document.body.classList.add('poptu-active')
     return () => document.body.classList.remove('poptu-active')
+  }, [])
+
+  useEffect(() => {
+    sendPoptuPageView()
   }, [])
 
   useEffect(() => {

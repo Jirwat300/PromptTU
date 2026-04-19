@@ -79,6 +79,74 @@ app.post('/api/analytics', async (req, res) => {
   }
 });
 
+function assertAdmin(req, res) {
+  const secret = process.env.ADMIN_ANALYTICS_SECRET;
+  if (!secret) {
+    res.status(503).json({ status: 'error', message: 'ADMIN_ANALYTICS_SECRET is not set on the server' });
+    return false;
+  }
+  const bearer = req.get('authorization');
+  const fromBearer =
+    bearer && /^Bearer\s+/i.test(bearer) ? bearer.replace(/^Bearer\s+/i, '').trim() : '';
+  const key = (req.get('x-admin-key') || fromBearer || '').trim();
+  if (key !== secret) {
+    res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    return false;
+  }
+  return true;
+}
+
+/** Read analytics_events (service role). Requires header `x-admin-key` or `Authorization: Bearer` = ADMIN_ANALYTICS_SECRET. */
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    if (!assertAdmin(req, res)) return;
+    if (!supabase) {
+      return res.status(500).json({ status: 'error', message: 'Supabase client is not initialized' });
+    }
+
+    const limit = Math.min(2000, Math.max(1, parseInt(String(req.query.limit || '300'), 10) || 300));
+    const offset = Math.max(0, parseInt(String(req.query.offset || '0'), 10) || 0);
+
+    const { count, error: countErr } = await supabase
+      .from('analytics_events')
+      .select('*', { count: 'exact', head: true });
+
+    if (countErr) {
+      console.error('[admin/analytics] count:', countErr.message);
+      return res.status(500).json({ status: 'error', message: countErr.message });
+    }
+
+    let byEventType = [];
+    const { data: summaryRows, error: sumErr } = await supabase.rpc('admin_analytics_event_counts');
+    if (!sumErr && Array.isArray(summaryRows)) {
+      byEventType = summaryRows;
+    }
+
+    const to = offset + limit - 1;
+    const { data: events, error: evErr } = await supabase
+      .from('analytics_events')
+      .select('id, created_at, event_type, path, device, referrer, watchtower, metadata, user_id')
+      .order('created_at', { ascending: false })
+      .range(offset, to);
+
+    if (evErr) {
+      console.error('[admin/analytics] list:', evErr.message);
+      return res.status(500).json({ status: 'error', message: evErr.message });
+    }
+
+    res.set('Cache-Control', 'no-store');
+    return res.json({
+      status: 'success',
+      total: count ?? 0,
+      by_event_type: byEventType,
+      events: events || [],
+    });
+  } catch (err) {
+    console.error('[admin/analytics]', err);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
 /* ==========================================================================
  * POP TU — faculty leaderboard
  * --------------------------------------------------------------------------
