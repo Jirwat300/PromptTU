@@ -80,6 +80,8 @@ app.post('/api/analytics', async (req, res) => {
 
 // Valid faculty ids — matches FACULTIES in frontend/src/poptu.jsx
 const POPTU_FACULTY_IDS = new Set([
+  'team_phromtham', 'team_dao', 'team_diw', 'team_rangsit', 'team_lampang', 'team_thaprachan',
+  'team_pattaya',
   'law', 'comm', 'polsci', 'econ', 'soc', 'anthro', 'arts', 'journ', 'sci',
   'eng', 'arch', 'fine', 'med', 'allied', 'dent', 'nurse', 'pub', 'pharm', 'learn',
   'puey', 'glob', 'cicm', 'inter', 'siit',

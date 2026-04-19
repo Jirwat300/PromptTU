@@ -75,6 +75,13 @@ create policy "read faculty_scores"
 -- 4. Seed faculties (count = 0) --------------------------------------------
 -- Upsert so re-running doesn't reset counts.
 insert into public.faculty_scores (id, name, emoji, count) values
+  ('team_phromtham', 'ทีมพร้อมธรรม',                    '✨', 0),
+  ('team_dao',       'ทีมดาว',                          '⭐', 0),
+  ('team_diw',       'ทีมดิว',                          '💫', 0),
+  ('team_rangsit',   'ทีมรังสิต',                       '🏢', 0),
+  ('team_lampang',   'ทีมลำปาง',                        '🏔️', 0),
+  ('team_thaprachan', 'ทีมท่าพระจันทร์',                '🛕', 0),
+  ('team_pattaya',   'ทีมพัทยา',                        '🌊', 0),
   ('law',    'คณะนิติศาสตร์',                         '⚖️', 0),
   ('comm',   'คณะพาณิชยศาสตร์และการบัญชี',            '📊', 0),
   ('polsci', 'คณะรัฐศาสตร์',                           '🏛️', 0),

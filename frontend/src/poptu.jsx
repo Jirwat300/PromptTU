@@ -31,6 +31,13 @@ import iconShare from './assets/internet_icon.png'
 
 /** Thammasat University faculties — keep each id stable for persistence */
 const FACULTIES = [
+  { id: 'team_phromtham', emoji: '✨', name: 'ทีมพร้อมธรรม' },
+  { id: 'team_dao',       emoji: '⭐', name: 'ทีมดาว' },
+  { id: 'team_diw',       emoji: '💫', name: 'ทีมดิว' },
+  { id: 'team_rangsit',   emoji: '🏢', name: 'ทีมรังสิต' },
+  { id: 'team_lampang',   emoji: '🏔️', name: 'ทีมลำปาง' },
+  { id: 'team_thaprachan', emoji: '🛕', name: 'ทีมท่าพระจันทร์' },
+  { id: 'team_pattaya',   emoji: '🌊', name: 'ทีมพัทยา' },
   { id: 'law',     emoji: '⚖️', name: 'คณะนิติศาสตร์' },
   { id: 'comm',    emoji: '📊', name: 'คณะพาณิชยศาสตร์และการบัญชี' },
   { id: 'polsci',  emoji: '🏛️', name: 'คณะรัฐศาสตร์' },
