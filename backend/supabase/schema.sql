@@ -28,27 +28,36 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  new_count bigint;
 begin
   -- clamp delta to avoid abuse. One honest human cannot exceed ~20 pops / sec;
   -- the backend already batches ≤ 50 at a time.
   if delta is null or delta <= 0 then
-    return (select count from public.faculty_scores where id = fid);
+    return coalesce((select count from public.faculty_scores where id = fid), 0);
   end if;
   if delta > 100 then
     delta := 100;
   end if;
 
-  update public.faculty_scores
-     set count = count + delta,
-         updated_at = now()
-   where id = fid;
+  -- Upsert: plain UPDATE misses rows if id was never inserted or id mismatched seed data.
+  insert into public.faculty_scores (id, name, emoji, count)
+  values (fid, '—', '', delta)
+  on conflict (id) do update set
+    count = faculty_scores.count + excluded.count,
+    updated_at = now()
+  returning count into new_count;
 
-  return (select count from public.faculty_scores where id = fid);
+  return coalesce(new_count, 0);
 end;
 $$;
 
 comment on function public.increment_faculty_score is
   'Atomically add `delta` pops to a faculty row. Clamped to 100 per call.';
+
+grant execute on function public.increment_faculty_score(text, integer) to anon;
+grant execute on function public.increment_faculty_score(text, integer) to authenticated;
+grant execute on function public.increment_faculty_score(text, integer) to service_role;
 
 -- 3. Row-Level Security -----------------------------------------------------
 alter table public.faculty_scores enable row level security;
