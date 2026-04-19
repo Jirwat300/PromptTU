@@ -417,6 +417,9 @@ body.poptu-active #root {
 }
 .ranking-score {
   flex: 0 0 auto;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
   font-family: 'MS Sans Serif', Tahoma, sans-serif;
   font-size: var(--poptu-row-text);
   line-height: var(--poptu-row-line);
@@ -430,7 +433,17 @@ body.poptu-active #root {
   font-size: var(--poptu-row-text);
   line-height: var(--poptu-row-line);
 }
-.poptu .rankings-window .ranking-faculty[lang="th"] .poptu-zoom-text,
+/* Rankings rows are too narrow for --poptu-th-zoom: scale paints over the POP column. */
+.poptu .rankings-window .ranking-faculty[lang="th"] .poptu-zoom-text {
+  display: block;
+  transform: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(var(--poptu-row-text) * 1.06);
+  line-height: var(--poptu-row-line);
+}
 .poptu .fieldset .faculty-name[lang="th"] .poptu-zoom-text {
   display: inline-block;
   transform: scale(var(--poptu-th-zoom));
@@ -860,13 +873,17 @@ body.poptu-active #root {
   white-space: nowrap;
 }
 .poptu-modal-root .all-faculties-name.poptu-zoom-text {
-  display: inline-block;
-  transform: scale(var(--poptu-th-zoom));
-  transform-origin: left center;
-  vertical-align: middle;
+  display: block;
+  transform: none;
+  max-width: 100%;
+  font-size: max(12px, calc(1em * 1.06));
+  line-height: 1.25;
 }
 .all-faculties-score {
   flex: 0 0 auto;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
