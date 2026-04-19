@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './poptu.css'
 import lizard1 from './assets/Lizard1.PNG'
-import lizard2 from './assets/Lizard2.PNG'
-import lizard3 from './assets/Lizard3.PNG'
-import lizard4 from './assets/Lizard4.PNG'
-import lizard5 from './assets/Lizard5.PNG'
+/* Lizard2–5 load after first paint (dynamic import) to speed initial mobile load */
 import iconHome from './assets/computer_icon.png'
 import iconHelp from './assets/question_icon.png'
 import iconShare from './assets/internet_icon.png'
@@ -14,8 +11,8 @@ import iconShare from './assets/internet_icon.png'
  *
  * Features:
  *   - Faculty picker (blocks the game until a faculty is chosen)
- *   - Clickable lizard that RANDOMLY swaps to one of 6 PNGs each click
- *   - Big blue 4-digit LCD counter (turns red when anti-cheat catches you)
+ *   - Clickable lizard that RANDOMLY swaps between 5 PNG poses each click
+ *   - Big blue 4-digit LCD — session click count only (Popcat-style), not global faculty total
  *   - Per-faculty Rankings window — REAL, shared via backend API
  *     (GET /api/ranking/scores, POST /api/ranking/pop)
  *   - Anti-autoclicker: statistical check on click-interval variance + CPS
@@ -61,18 +58,15 @@ const JITTER_MIN = 0.08     // stdev/mean threshold. Humans jitter ≳ 0.15
 const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
 /** PT mark on lizard stage — from public/ so URL respects Vite base (Vercel-safe) */
 const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.png`
-const RANKING_REFRESH_MS = 4000   // how often we re-poll the leaderboard
-const POP_FLUSH_MS = 800          // batch window for /api/ranking/pop
+const RANKING_REFRESH_MS = 4000          // leaderboard poll while tab visible
+const RANKING_REFRESH_HIDDEN_MS = 30000 // slow poll when tab in background (saves work + data)
+const POP_FLUSH_MS = 800                  // batch window for /api/ranking/pop
 
 /* ----------------------------- Lizard poses ---------------------------- */
-/* Every click picks a random pose from this array (always different from
- * the current one, so the image always changes).                          */
-const LIZARD_POSES = [lizard1, lizard2, lizard3, lizard4, lizard5]
-
-function pickRandomPose(currentSrc) {
-  if (LIZARD_POSES.length <= 1) return LIZARD_POSES[0]
-  // Pick any index except the current one.
-  const pool = LIZARD_POSES.filter((src) => src !== currentSrc)
+function pickRandomPose(currentSrc, poses) {
+  if (!poses?.length) return currentSrc
+  if (poses.length <= 1) return poses[0]
+  const pool = poses.filter((src) => src !== currentSrc)
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
@@ -151,11 +145,12 @@ function FacultyPicker({ onPick }) {
         <div style={{ padding: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 0 10px' }}>
             <img
-              src={lizard5}
+              src={lizard1}
               alt=""
               aria-hidden="true"
               style={{ width: 72, height: 'auto', flexShrink: 0 }}
               draggable={false}
+              decoding="async"
             />
             <p className="poptu-faculty-blurb" lang="th">
               เลือกคณะของคุณเพื่อช่วยสะสมคะแนนให้คณะในตาราง Rankings
@@ -255,10 +250,14 @@ function ReadyDialog({ onClose }) {
 
 export default function PopTu({ onNavigateToComingSoon }) {
   const [facultyId, setFacultyId] = useState(null)
-  /** Server-truth scores keyed by faculty id. Starts empty; populated on mount. */
+  /** Server-truth scores keyed by faculty id. Used for Rankings (global); LCD uses sessionClicks. */
   const [scores, setScores] = useState({})
+  /** Local pops this session for the selected faculty — LCD shows this only (not global total). */
+  const [sessionClicks, setSessionClicks] = useState(0)
   /** Random current pose image src */
   const [poseSrc, setPoseSrc] = useState(lizard1)
+  /** All pose URLs; starts with [lizard1], then Lizard2–5 load asynchronously */
+  const lizardPosesRef = useRef([lizard1])
   const [caught, setCaught] = useState(false)
   const [errOpen, setErrOpen] = useState(false)
   const [readyOpen, setReadyOpen] = useState(false)
@@ -292,6 +291,31 @@ export default function PopTu({ onNavigateToComingSoon }) {
     return () => document.body.classList.remove('poptu-active')
   }, [])
 
+  // Defer Lizard2–5 so first paint competes with fewer image downloads on mobile
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([
+      import('./assets/Lizard2.PNG'),
+      import('./assets/Lizard3.PNG'),
+      import('./assets/Lizard4.PNG'),
+      import('./assets/Lizard5.PNG'),
+    ])
+      .then((mods) => {
+        if (cancelled) return
+        lizardPosesRef.current = [lizard1, ...mods.map((m) => m.default)]
+      })
+      .catch(() => {
+        /* keep single-pose fallback */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    setSessionClicks(0)
+  }, [facultyId])
+
   // -------------------- Fetch scores from backend --------------------
   const fetchScores = useCallback(async () => {
     try {
@@ -313,13 +337,21 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [])
 
   useEffect(() => {
-    // Kick off an immediate fetch, then poll every RANKING_REFRESH_MS.
-    // The state update inside `fetchScores` is awaited (async), so it won't
-    // trigger a render inside the effect body itself.
+    const pollMs = () => (document.hidden ? RANKING_REFRESH_HIDDEN_MS : RANKING_REFRESH_MS)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchScores()
-    const iv = setInterval(fetchScores, RANKING_REFRESH_MS)
-    return () => clearInterval(iv)
+    let iv = setInterval(fetchScores, pollMs())
+
+    const onVisibility = () => {
+      clearInterval(iv)
+      if (!document.hidden) fetchScores()
+      iv = setInterval(fetchScores, pollMs())
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      clearInterval(iv)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [fetchScores])
 
   // -------------------- Flush pending clicks to backend --------------------
@@ -413,10 +445,11 @@ export default function PopTu({ onNavigateToComingSoon }) {
     if (buf.length > MAX_CLICK_BUFFER) buf.shift()
 
     // Random pose (always different from the current one)
-    setPoseSrc((cur) => pickRandomPose(cur))
+    setPoseSrc((cur) => pickRandomPose(cur, lizardPosesRef.current))
     setPopAnim((n) => n + 1)
 
-    // Optimistic local bump so the LCD feels instant
+    // LCD: session-only count. Rankings: optimistic global bump until server poll confirms.
+    setSessionClicks((n) => n + 1)
     setScores((prev) => ({ ...prev, [facultyId]: (prev[facultyId] ?? 0) + 1 }))
     pendingDeltaRef.current += 1
     scheduleFlush()
@@ -430,7 +463,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
     if (detectCheating()) {
       setCaught(true)
       setErrOpen(true)
-      // Penalty: roll back 100 optimistic pts locally (server stays authoritative)
+      // Penalty: roll back 100 optimistic pts for rankings + session LCD (server stays authoritative)
+      setSessionClicks((c) => Math.max(c - 100, 0))
       setScores((prev) => {
         const penalty = 100
         const cur = prev[facultyId] ?? 0
@@ -452,7 +486,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
     onNavigateToComingSoon?.()
   }, [flushPending, onNavigateToComingSoon])
 
-  const myCount = facultyId ? scores[facultyId] ?? 0 : 0
+  const myCount = facultyId ? sessionClicks : 0
 
   const rankings = useMemo(() => {
     return FACULTIES
