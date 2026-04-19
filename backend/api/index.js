@@ -70,7 +70,7 @@ app.post('/api/analytics', async (req, res) => {
 /* ==========================================================================
  * POP TU — faculty leaderboard
  * --------------------------------------------------------------------------
- *   GET  /api/ranking/scores           → { scores: {id: count}, top: [...] }
+ *   GET  /api/ranking/scores           → { scores, top, rows }  // rows = full table from DB for modal
  *   POST /api/ranking/pop  {faculty_id, delta}
  *                                       → { count }   // new total for faculty
  *
@@ -127,9 +127,16 @@ app.get('/api/ranking/scores', async (req, res) => {
     const top = (data || []).slice(0, 3).map((r) => ({
       id: r.id, name: r.name, emoji: r.emoji, score: Number(r.count) || 0,
     }));
+    /** Full table for modal — ids / names / emojis from DB (stays in sync if SQL adds rows). */
+    const rows = (data || []).map((r) => ({
+      id: r.id,
+      name: r.name,
+      emoji: r.emoji ?? '',
+      count: Number(r.count) || 0,
+    }));
 
     res.set('Cache-Control', 'no-store');
-    return res.json({ status: 'success', scores, top });
+    return res.json({ status: 'success', scores, top, rows });
   } catch (err) {
     console.error('[ranking] scores error:', err);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });

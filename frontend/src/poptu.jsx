@@ -243,7 +243,9 @@ function AllFacultiesDialog({ rows, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="win-titlebar">
-          <span className="win-title win-title--font-2005" id="all-fac-title" lang="th">คะแนนทุกคณะ</span>
+          <span className="win-title win-title--font-2005" id="all-fac-title" lang="th">
+            คะแนนทั้งหมด (คณะและทีม)
+          </span>
           <div className="win-title-btns">
             <button type="button" className="win-btn" aria-label="Minimise">_</button>
             <button type="button" className="win-btn" aria-label="Maximise">□</button>
@@ -321,6 +323,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [facultyId, setFacultyId] = useState(null)
   /** Server-truth scores keyed by faculty id. Used for Rankings (global); LCD uses sessionClicks. */
   const [scores, setScores] = useState({})
+  /** Full id/name/emoji from GET /scores `rows` — fills modal when DB has rows not yet in this bundle. */
+  const [facultyMetaFromApi, setFacultyMetaFromApi] = useState(null)
   /** Local pops this session for the selected faculty — LCD shows this only (not global total). */
   const [sessionClicks, setSessionClicks] = useState(0)
   /** Random current pose image src */
@@ -413,6 +417,15 @@ export default function PopTu({ onNavigateToComingSoon }) {
           merged[facultyId] = (merged[facultyId] ?? 0) + pendingDeltaRef.current
         }
         if (gen !== scoresFetchGenRef.current) return
+        if (Array.isArray(json.rows)) {
+          setFacultyMetaFromApi(
+            json.rows.map((r) => ({
+              id: r.id,
+              name: r.name,
+              emoji: r.emoji ?? '',
+            })),
+          )
+        }
         setScores(merged)
       }
     } catch {
@@ -602,15 +615,22 @@ export default function PopTu({ onNavigateToComingSoon }) {
       .slice(0, 3)
   }, [scores])
 
-  /** Full table for modal — same numbers as scoreboard (`scores` includes optimistic clicks). */
+  /** Full table for modal: FACULTIES + any DB row not in this bundle (via API `rows`). */
   const allFacultyRows = useMemo(() => {
-    return FACULTIES.map((f) => ({
+    const facIds = new Set(FACULTIES.map((f) => f.id))
+    const base = FACULTIES.map((f) => ({
       ...f,
       score: scores[f.id] ?? 0,
     }))
+    const extras =
+      facultyMetaFromApi?.filter((r) => !facIds.has(r.id)).map((r) => ({
+        ...r,
+        score: scores[r.id] ?? 0,
+      })) ?? []
+    return [...base, ...extras]
       .sort((a, b) => b.score - a.score)
       .map((row, idx) => ({ ...row, rank: idx + 1 }))
-  }, [scores])
+  }, [scores, facultyMetaFromApi])
 
   const currentFaculty = FACULTIES.find((f) => f.id === facultyId)
 
