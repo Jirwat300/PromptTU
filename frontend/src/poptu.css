@@ -303,65 +303,46 @@ body.poptu-active #root {
 .rankings-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-end;
   margin-top: 0;
-  padding-top: 0;
+  padding-top: 2px;
   min-width: 0;
-}
-.rankings-footer-note {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: clamp(8px, 2.35vw, 10px);
-  line-height: 1.25;
-  font-weight: 400;
-  text-align: left;
-  color: #1a1a1a;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  word-break: break-word;
-}
-/* Matches Win95 title-bar gradient + chrome (POPTU / Rankings strip) */
-.rankings-more-btn {
   flex-shrink: 0;
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: max(12px, calc(var(--poptu-row-text) - 1px));
-  font-weight: 700;
-  line-height: var(--poptu-row-line);
+}
+/* Icon-only: opens full ranking table — keeps mobile faculty row from being squeezed */
+.rankings-chart-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
   color: #fff;
   background: var(--title-blue-grad);
   border: 2px solid var(--win-dark);
   border-radius: 0;
-  padding: 5px 14px;
-  min-width: auto;
   cursor: pointer;
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.4),
     inset -1px -1px 0 rgba(0, 0, 0, 0.35),
     2px 2px 0 rgba(0, 0, 0, 0.2);
 }
-.rankings-more-btn:hover {
+.rankings-chart-btn:hover {
   filter: brightness(1.08);
 }
-.rankings-more-btn:active {
-  box-shadow:
-    inset 2px 2px 3px rgba(0, 0, 0, 0.45);
-  padding: 6px 13px 4px 15px;
+.rankings-chart-btn:active {
+  box-shadow: inset 2px 2px 3px rgba(0, 0, 0, 0.45);
+  padding: 1px 0 0 1px;
 }
-.rankings-more-btn:focus-visible {
+.rankings-chart-btn:focus-visible {
   outline: 2px dotted #fff;
   outline-offset: 2px;
 }
-.poptu .rankings-more-btn[lang="th"] {
-  font-family: 'IannnnnAMD2005', 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: calc(var(--poptu-row-text) * 1.05);
-  line-height: var(--poptu-row-line);
-  font-weight: 400;
+.rankings-chart-icon {
+  display: block;
+  pointer-events: none;
 }
 /* One dashed border around the block; three stacked rows inside (same layout as before). */
 .ranking-row--combined {

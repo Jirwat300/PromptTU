@@ -656,16 +656,26 @@ export default function PopTu({ onNavigateToComingSoon }) {
                 </div>
               )}
               <div className="rankings-footer">
-                <p className="rankings-footer-note" lang="th">
-                  สื่ออิเล็กทรอนิกส์และเว็บไซต์ผลิตโดย พรรคพร้อมธรรม
-                </p>
                 <button
                   type="button"
-                  className="rankings-more-btn"
-                  lang="th"
+                  className="rankings-chart-btn"
                   onClick={() => setAllFacultiesOpen(true)}
+                  aria-label="ดูคะแนนทุกคณะ"
+                  title="ดูคะแนนทุกคณะ"
                 >
-                  เพิ่มเติม
+                  <svg
+                    className="rankings-chart-icon"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <rect x="3" y="14" width="4" height="7" fill="currentColor" />
+                    <rect x="9" y="9" width="4" height="12" fill="currentColor" />
+                    <rect x="15" y="12" width="4" height="9" fill="currentColor" />
+                    <rect x="21" y="6" width="3" height="15" fill="currentColor" />
+                  </svg>
                 </button>
               </div>
             </div>
