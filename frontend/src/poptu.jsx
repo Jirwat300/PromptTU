@@ -295,8 +295,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
   /** Locally applied (optimistic) additions per faculty we've already rendered in the
    *  counter but are still waiting for the server round-trip to confirm. */
   const optimisticRef = useRef({})
-  /** Abort stale in-flight GET /scores when a new poll starts or component unmounts. */
-  const scoresFetchAbortRef = useRef(null)
+  /** Monotonic id per GET /scores. Ignore responses whose id is not latest (avoids out-of-order writes). */
+  const scoresFetchGenRef = useRef(0)
 
   // Mark body for theme background
   useEffect(() => {
@@ -331,16 +331,16 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
   // -------------------- Fetch scores from backend --------------------
   const fetchScores = useCallback(async () => {
-    scoresFetchAbortRef.current?.abort()
-    const ac = new AbortController()
-    scoresFetchAbortRef.current = ac
+    const gen = ++scoresFetchGenRef.current
     try {
-      const res = await fetch(`${API_BASE}/api/ranking/scores`, {
-        cache: 'no-store',
-        signal: ac.signal,
-      })
+      // Do NOT abort the previous request when a new poll fires: if the API is
+      // slower than the poll interval, abort-on-retry would cancel every flight
+      // and the scoreboard would never update.
+      const res = await fetch(`${API_BASE}/api/ranking/scores`, { cache: 'no-store' })
+      if (gen !== scoresFetchGenRef.current) return
       if (!res.ok) return
       const json = await res.json()
+      if (gen !== scoresFetchGenRef.current) return
       if (json?.scores) {
         // Merge server truth with any still-pending optimistic adds so the
         // user doesn't see their own clicks roll back during a refresh.
@@ -349,11 +349,11 @@ export default function PopTu({ onNavigateToComingSoon }) {
           merged[id] = (merged[id] ?? 0) + add
         }
         startTransition(() => {
+          if (gen !== scoresFetchGenRef.current) return
           setScores(merged)
         })
       }
-    } catch (e) {
-      if (e?.name === 'AbortError') return
+    } catch {
       /* network hiccup — we'll try again on the next poll */
     }
   }, [])
@@ -371,9 +371,9 @@ export default function PopTu({ onNavigateToComingSoon }) {
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
+      scoresFetchGenRef.current += 1
       clearInterval(iv)
       document.removeEventListener('visibilitychange', onVisibility)
-      scoresFetchAbortRef.current?.abort()
     }
   }, [fetchScores])
 
