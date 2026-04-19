@@ -69,6 +69,8 @@ const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
 const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.webp`
 const RANKING_REFRESH_MS = 10000         // leaderboard poll while tab visible (lower = more network + re-renders)
 const RANKING_REFRESH_HIDDEN_MS = 30000 // slow poll when tab in background (saves work + data)
+/** While “คะแนนทุกคณะ” modal is open, poll scores faster so it tracks the board + other users. */
+const ALL_FACULTIES_POLL_MS = 3000
 const POP_FLUSH_MS = 800                  // batch window for /api/ranking/pop
 /** Cap simultaneous “+1” floaters — rapid clicks used to grow DOM without bound. */
 const MAX_FLOATERS = 12
@@ -148,7 +150,7 @@ function FacultyPicker({ onPick }) {
     <div className="poptu-modal-root" role="dialog" aria-modal="true" aria-labelledby="fp-title">
       <div className="win-dialog" style={{ width: 'min(420px, 100%)' }}>
         <div className="win-titlebar">
-          <span className="win-title" id="fp-title" lang="th">เลือกคณะก่อนเริ่มเล่น</span>
+          <span className="win-title win-title--font-2005" id="fp-title" lang="th">เลือกคณะก่อนเริ่มเล่น</span>
           <div className="win-title-btns">
             <button type="button" className="win-btn" aria-label="Minimise">_</button>
           </div>
@@ -234,7 +236,7 @@ function AllFacultiesDialog({ rows, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="win-titlebar">
-          <span className="win-title" id="all-fac-title" lang="th">คะแนนทุกคณะ</span>
+          <span className="win-title win-title--font-2005" id="all-fac-title" lang="th">คะแนนทุกคณะ</span>
           <div className="win-title-btns">
             <button type="button" className="win-btn" aria-label="Minimise">_</button>
             <button type="button" className="win-btn" aria-label="Maximise">□</button>
@@ -242,7 +244,7 @@ function AllFacultiesDialog({ rows, onClose }) {
           </div>
         </div>
         <div className="win-dialog-body win-dialog-body--all-faculties">
-          <ul className="all-faculties-list" lang="th">
+          <ul className="all-faculties-list" lang="th" aria-live="polite" aria-relevant="text">
             {rows.map((r) => (
               <li key={r.id} className="all-faculties-row">
                 <span className="all-faculties-rank" aria-hidden="true">{r.rank}</span>
@@ -251,7 +253,8 @@ function AllFacultiesDialog({ rows, onClose }) {
                   <span className="all-faculties-name poptu-zoom-text">{r.name}</span>
                 </span>
                 <span className="all-faculties-score" translate="no">
-                  {r.score.toLocaleString('en-US')} POP
+                  <span className="all-faculties-score-num">{r.score.toLocaleString('en-US')}</span>
+                  <span className="all-faculties-score-suffix"> POP</span>
                 </span>
               </li>
             ))}
@@ -426,6 +429,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
     }
   }, [fetchScores])
 
+  /** Modal open: refresh immediately + poll often so totals match the board and update from other players. */
+  useEffect(() => {
+    if (!allFacultiesOpen) return
+    fetchScores()
+    const iv = setInterval(fetchScores, ALL_FACULTIES_POLL_MS)
+    return () => clearInterval(iv)
+  }, [allFacultiesOpen, fetchScores])
+
   // -------------------- Flush pending clicks to backend --------------------
   const flushPending = useCallback(async () => {
     if (!facultyId) return
@@ -575,16 +586,15 @@ export default function PopTu({ onNavigateToComingSoon }) {
       .slice(0, 3)
   }, [scores])
 
-  /** Full table for modal — includes unflushed pops for the selected faculty (sessionClicks bumps this). */
+  /** Full table for modal — same numbers as scoreboard (`scores` includes optimistic clicks). */
   const allFacultyRows = useMemo(() => {
-    const pending = facultyId ? pendingDeltaRef.current : 0
     return FACULTIES.map((f) => ({
       ...f,
-      score: (scores[f.id] ?? 0) + (f.id === facultyId ? pending : 0),
+      score: scores[f.id] ?? 0,
     }))
       .sort((a, b) => b.score - a.score)
       .map((row, idx) => ({ ...row, rank: idx + 1 }))
-  }, [scores, facultyId, sessionClicks])
+  }, [scores])
 
   const currentFaculty = FACULTIES.find((f) => f.id === facultyId)
 
@@ -651,6 +661,9 @@ export default function PopTu({ onNavigateToComingSoon }) {
                 </button>
               </div>
             </div>
+            <p className="rankings-disclaimer" lang="th">
+              สื่ออิเล็กทรอนิกส์และเว็บไซต์ผลิตโดย พรรคพร้อมธรรม
+            </p>
           </section>
 
           {/* LCD counter */}
