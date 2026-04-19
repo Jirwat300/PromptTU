@@ -1,0 +1,8 @@
+{
+  "name": "tupt-monorepo",
+  "private": true,
+  "description": "Vercel root: builds frontend/dist and mounts backend Express at /api via api/index.js",
+  "scripts": {
+    "vercel-build": "npm run build --prefix frontend"
+  }
+}

@@ -27,36 +27,44 @@ returns bigint
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $fn$
 declare
-  new_count bigint;
+  d int;
+  r bigint;
 begin
-  -- clamp delta to avoid abuse. One honest human cannot exceed ~20 pops / sec;
-  -- the backend already batches ≤ 50 at a time.
+  -- clamp: backend batches ≤ 50; cap at 100 per RPC call
   if delta is null or delta <= 0 then
-    return coalesce((select count from public.faculty_scores where id = fid), 0);
-  end if;
-  if delta > 100 then
-    delta := 100;
+    r := (
+      select coalesce(fs."count", 0)
+      from public.faculty_scores fs
+      where fs.id = increment_faculty_score.fid
+      limit 1
+    );
+    return coalesce(r, 0);
   end if;
 
-  -- Upsert: plain UPDATE misses rows if id was never inserted or id mismatched seed data.
-  insert into public.faculty_scores (id, name, emoji, count)
-  values (fid, '—', '', delta)
-  on conflict (id) do update set
-    count = faculty_scores.count + excluded.count,
+  d := least(delta, 100);
+  update public.faculty_scores fs
+  set
+    "count" = fs."count" + d,
     updated_at = now()
-  returning count into new_count;
+  where fs.id = increment_faculty_score.fid;
 
-  return coalesce(new_count, 0);
+  r := (
+    select coalesce(fs."count", 0)
+    from public.faculty_scores fs
+    where fs.id = increment_faculty_score.fid
+    limit 1
+  );
+
+  return coalesce(r, 0);
 end;
-$$;
+$fn$;
 
 comment on function public.increment_faculty_score is
-  'Atomically add `delta` pops to a faculty row. Clamped to 100 per call.';
+  'Atomically add `delta` pops to an existing faculty row. Clamped to 100 per call. Backend should use service_role.';
 
-grant execute on function public.increment_faculty_score(text, integer) to anon;
-grant execute on function public.increment_faculty_score(text, integer) to authenticated;
+revoke all on function public.increment_faculty_score(text, integer) from public;
 grant execute on function public.increment_faculty_score(text, integer) to service_role;
 
 -- 3. Row-Level Security -----------------------------------------------------
@@ -111,3 +119,27 @@ on conflict (id) do update set
   emoji = excluded.emoji;
 -- NOTE: `count` intentionally NOT touched in on-conflict so re-running this
 -- file won't wipe live scores.
+
+-- 5. Analytics (POST /api/analytics) -----------------------------------------
+create table if not exists public.analytics_events (
+  id          bigserial primary key,
+  created_at  timestamptz not null default now(),
+  event_type  text not null,
+  path        text,
+  device      text,
+  referrer    text,
+  watchtower  text,
+  metadata    jsonb,
+  user_id     text
+);
+
+comment on table public.analytics_events is 'Lightweight client analytics ingested via Express + service_role';
+
+create index if not exists analytics_events_created_at_idx
+  on public.analytics_events (created_at desc);
+
+create index if not exists analytics_events_event_type_idx
+  on public.analytics_events (event_type);
+
+alter table public.analytics_events enable row level security;
+-- No SELECT/INSERT policies: only the service role (backend) touches this table.

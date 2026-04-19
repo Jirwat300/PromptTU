@@ -13,9 +13,9 @@
   "type": "commonjs",
   "dependencies": {
     "@supabase/supabase-js": "^2.103.3",
+    "@upstash/redis": "^1.37.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3"
+    "express": "^5.2.1"
   }
 }

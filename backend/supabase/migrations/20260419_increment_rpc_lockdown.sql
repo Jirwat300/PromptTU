@@ -1,5 +1,8 @@
--- One-shot fix: run in Supabase → SQL if POP scores stay at 0 after clicks.
--- Avoid SELECT...INTO (plain SQL interprets INTO as a table); use var := (SELECT...).
+-- Lock down increment_faculty_score: no arbitrary fid upserts; callable only by service_role.
+-- Apply after seed rows exist for every valid faculty id.
+--
+-- Avoid `SELECT ... INTO var` (plain SQL treats INTO as table target → "relation does not exist").
+-- Use `var := (SELECT ...)` only. Run the whole file in one execution.
 
 create or replace function public.increment_faculty_score (fid text, delta integer)
 returns bigint

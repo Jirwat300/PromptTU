@@ -1,11 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const supabase = require('../src/supabaseClient');
+const {
+  takePopBudget,
+  POP_MAX_DELTA_PER_CALL,
+} = require('../src/popRateLimit');
+
+const POPTU_FACULTIES = require(path.join(__dirname, '../data/poptu-faculties.json'));
+const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware — set CORS_ORIGINS (comma-separated) in production to restrict browser callers.
+const corsOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+app.use(corsOrigins.length > 0 ? cors({ origin: corsOrigins }) : cors());
 app.use(express.json());
 
 // Routes
@@ -76,36 +88,12 @@ app.post('/api/analytics', async (req, res) => {
  *
  * Writes go through an atomic RPC `increment_faculty_score(fid, delta)`
  * (see backend/supabase/schema.sql).
+ *
+ * Optional: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (or KV_REST_*)
+ * for shared per-IP rate limits across serverless instances (see src/popRateLimit.js).
  * ========================================================================== */
 
-// Valid faculty ids — matches FACULTIES in frontend/src/poptu.jsx
-const POPTU_FACULTY_IDS = new Set([
-  'team_phromtham', 'team_dao', 'team_diw', 'team_rangsit', 'team_lampang', 'team_thaprachan',
-  'team_pattaya',
-  'law', 'comm', 'polsci', 'econ', 'soc', 'anthro', 'arts', 'journ', 'sci',
-  'eng', 'arch', 'fine', 'med', 'allied', 'dent', 'nurse', 'pub', 'pharm', 'learn',
-  'puey', 'glob', 'cicm', 'inter', 'siit',
-]);
-
-// Server-side rate-limit to keep one IP from hammering the RPC.
-// Map<ip, { windowStart:number, delta:number }>  — window = 1 s
-const popBuckets = new Map();
-const POP_MAX_DELTA_PER_SEC = 30;     // generous — honest taps can reach ~20/s
-const POP_MAX_DELTA_PER_CALL = 50;    // client batches every ~800 ms
-
-function takePopBudget(ip, delta) {
-  const now = Date.now();
-  const bucket = popBuckets.get(ip);
-  if (!bucket || now - bucket.windowStart > 1000) {
-    popBuckets.set(ip, { windowStart: now, delta });
-    return delta <= POP_MAX_DELTA_PER_SEC ? delta : POP_MAX_DELTA_PER_SEC;
-  }
-  const remaining = POP_MAX_DELTA_PER_SEC - bucket.delta;
-  if (remaining <= 0) return 0;
-  const allowed = Math.min(delta, remaining);
-  bucket.delta += allowed;
-  return allowed;
-}
+// Valid faculty ids — same list as backend/data/poptu-faculties.json (frontend imports that file too).
 
 app.get('/api/ranking/scores', async (req, res) => {
   try {
@@ -164,7 +152,7 @@ app.post('/api/ranking/pop', async (req, res) => {
     // Simple per-IP rate limit
     const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim()
             || req.ip || req.socket?.remoteAddress || 'unknown';
-    const allowed = takePopBudget(ip, d);
+    const allowed = await takePopBudget(ip, d);
     if (allowed <= 0) {
       return res.status(429).json({ status: 'error', message: 'slow down' });
     }
