@@ -393,12 +393,10 @@ export default function PopTu({ onNavigateToComingSoon }) {
       if (!res.ok) return
       const json = await res.json()
       if (gen !== scoresFetchGenRef.current) return
-      if (json?.scores) {
-        // Merge server truth with in-flight RPC (optimisticRef) AND clicks not yet
-        // flushed (pendingDeltaRef); omitting pending used to overwrite scores and
-        // made the modal / board look non–real-time after each poll.
-        const merged = { ...json.scores }
-        for (const [id, raw] of Object.entries(merged)) {
+      if (json?.scores != null) {
+        // Every faculty id gets a slot so GET (sparse rows) never drops a key the UI already bumped.
+        const merged = Object.fromEntries(FACULTIES.map((f) => [f.id, 0]))
+        for (const [id, raw] of Object.entries(json.scores)) {
           merged[id] = Number(raw) || 0
         }
         for (const [id, add] of Object.entries(optimisticRef.current)) {
@@ -459,27 +457,33 @@ export default function PopTu({ onNavigateToComingSoon }) {
         body: JSON.stringify({ faculty_id: facultyId, delta }),
       })
       const json = await res.json().catch(() => ({}))
-      if (res.ok && typeof json?.count === 'number') {
-        // reconcile: server now knows about the delta we just sent, drop it
+      const serverCount = Number(json?.count)
+      const appliedRaw = Number(json?.applied)
+
+      if (res.ok && Number.isFinite(serverCount)) {
+        const ack =
+          Number.isFinite(appliedRaw) && appliedRaw >= 0 ? Math.min(appliedRaw, delta) : delta
+        // Drop the whole batch from optimistic (we added `delta` at start); requeue what the server did not apply.
         optimisticRef.current[facultyId] = Math.max(
           (optimisticRef.current[facultyId] ?? 0) - delta,
           0,
         )
+        if (ack < delta) pendingDeltaRef.current += delta - ack
+
         startTransition(() => {
           setScores((prev) => ({
             ...prev,
-            [facultyId]: json.count + (optimisticRef.current[facultyId] ?? 0),
+            [facultyId]: serverCount + (optimisticRef.current[facultyId] ?? 0),
           }))
         })
       } else {
-        // roll back optimistic add on error
         optimisticRef.current[facultyId] = Math.max(
           (optimisticRef.current[facultyId] ?? 0) - delta,
           0,
         )
+        pendingDeltaRef.current += delta
       }
     } catch {
-      // network failure: roll back optimistic add and requeue delta
       optimisticRef.current[facultyId] = Math.max(
         (optimisticRef.current[facultyId] ?? 0) - delta,
         0,
