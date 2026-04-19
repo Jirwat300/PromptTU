@@ -437,14 +437,14 @@ body.poptu-active #root {
 }
 /* Rankings rows are too narrow for --poptu-th-zoom: scale paints over the POP column. */
 .poptu .rankings-window .ranking-faculty[lang="th"] .poptu-zoom-text {
-  display: block;
-  transform: none;
-  max-width: 100%;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: max(15px, calc(var(--poptu-ranking-font) * 1.06));
+  max-width: 100%;
+  font-size: max(19px, calc(var(--poptu-ranking-font) * 1.06));
   line-height: var(--poptu-row-line);
+  display: block;
+  overflow: hidden;
+  transform: none;
 }
 .poptu .fieldset .faculty-name[lang="th"] .poptu-zoom-text {
   display: inline-block;
