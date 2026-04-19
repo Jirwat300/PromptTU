@@ -1,16 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import './admin-traffic.css'
 
-const STORAGE_KEY = 'poptu-admin-analytics-key'
-
 export default function AdminTraffic() {
-  const [adminKey, setAdminKey] = useState(() => {
-    try {
-      return sessionStorage.getItem(STORAGE_KEY) || ''
-    } catch {
-      return ''
-    }
-  })
+  /** ไม่เก็บรหัสใน sessionStorage / localStorage — พิมพ์ใหม่ทุกครั้งที่เปิดหน้า */
+  const [adminKey, setAdminKey] = useState('')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState(null)
   const [payload, setPayload] = useState(null)
@@ -28,7 +21,7 @@ export default function AdminTraffic() {
       return
     }
     if (!adminKey.trim()) {
-      setErr('ใส่ Admin key (ค่าเดียวกับ ADMIN_ANALYTICS_SECRET บนเซิร์ฟเวอร์)')
+      setErr('ใส่รหัสเข้า admin')
       return
     }
     setLoading(true)
@@ -43,11 +36,6 @@ export default function AdminTraffic() {
         return
       }
       setPayload(json)
-      try {
-        sessionStorage.setItem(STORAGE_KEY, adminKey.trim())
-      } catch {
-        /* ignore */
-      }
     } catch (e) {
       setErr(e?.message || 'โหลดไม่สำเร็จ')
     } finally {
@@ -76,14 +64,16 @@ export default function AdminTraffic() {
 
       <section className="admin-traffic__panel">
         <label className="admin-traffic__label">
-          Admin key
+          รหัสเข้า admin
           <input
             className="admin-traffic__input"
             type="password"
             autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             value={adminKey}
             onChange={(e) => setAdminKey(e.target.value)}
-            placeholder="ADMIN_ANALYTICS_SECRET"
+            placeholder="พิมพ์รหัส"
           />
         </label>
         <button

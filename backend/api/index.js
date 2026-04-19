@@ -79,12 +79,9 @@ app.post('/api/analytics', async (req, res) => {
   }
 });
 
+/** Admin traffic API: env ADMIN_ANALYTICS_SECRET overrides; default matches product password (rotate via env in prod). */
 function assertAdmin(req, res) {
-  const secret = process.env.ADMIN_ANALYTICS_SECRET;
-  if (!secret) {
-    res.status(503).json({ status: 'error', message: 'ADMIN_ANALYTICS_SECRET is not set on the server' });
-    return false;
-  }
+  const secret = (process.env.ADMIN_ANALYTICS_SECRET || 'guyakdie').trim();
   const bearer = req.get('authorization');
   const fromBearer =
     bearer && /^Bearer\s+/i.test(bearer) ? bearer.replace(/^Bearer\s+/i, '').trim() : '';
