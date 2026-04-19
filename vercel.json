@@ -8,7 +8,7 @@
   ],
   "functions": {
     "api/[...slug].js": {
-      "includeFiles": ["backend/**"]
+      "includeFiles": "backend/**"
     }
   }
 }

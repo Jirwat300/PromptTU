@@ -33,12 +33,16 @@ import AllFacultiesDialog from './modals/AllFacultiesDialog.jsx'
 import ErrorDialog from './modals/ErrorDialog.jsx'
 import FacultyPicker from './modals/FacultyPicker.jsx'
 import ReadyDialog from './modals/ReadyDialog.jsx'
+import { loadPoptuUserState, writePoptuUserState } from './userStateStorage.js'
+
+const PERSISTED_FACULTY_IDS = FACULTIES.map((f) => f.id)
+const PERSISTED_INIT = loadPoptuUserState(PERSISTED_FACULTY_IDS)
 
 export default function PopTu({ onNavigateToComingSoon }) {
-  const [facultyId, setFacultyId] = useState(null)
+  const [facultyId, setFacultyId] = useState(PERSISTED_INIT.facultyId)
   const [scores, setScores] = useState({})
   const [facultyMetaFromApi, setFacultyMetaFromApi] = useState(null)
-  const [sessionClicks, setSessionClicks] = useState(0)
+  const [sessionClicks, setSessionClicks] = useState(PERSISTED_INIT.sessionClicks)
   const [poseSrc, setPoseSrc] = useState(lizard1)
   const lizardPosesRef = useRef([lizard1])
   const [caught, setCaught] = useState(false)
@@ -92,9 +96,13 @@ export default function PopTu({ onNavigateToComingSoon }) {
     }
   }, [])
 
+  /** Remember selected faculty + LCD session count across refresh (localStorage). */
   useEffect(() => {
-    setSessionClicks(0)
-  }, [facultyId])
+    const t = window.setTimeout(() => {
+      writePoptuUserState(facultyId, sessionClicks)
+    }, 400)
+    return () => clearTimeout(t)
+  }, [facultyId, sessionClicks])
 
   const fetchScores = useCallback(async () => {
     const gen = ++scoresFetchGenRef.current
@@ -480,6 +488,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
           lizard1Src={lizard1}
           onPick={(id) => {
             setFacultyId(id)
+            setSessionClicks(0)
             clickTimes.current = []
           }}
         />
