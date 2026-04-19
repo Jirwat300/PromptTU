@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    /** Smaller, faster JS on modern browsers (adjust if you must support very old Safari). */
+    target: 'es2022',
     rollupOptions: {
       output: {
         manualChunks(id) {

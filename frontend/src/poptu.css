@@ -247,7 +247,7 @@ body.poptu-active #root {
   min-height: 0;
   gap: 10px;
   background-color: #fff;
-  background-image: url('./assets/pt.PNG');
+  background-image: url('./assets/pt.webp');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
@@ -267,6 +267,8 @@ body.poptu-active #root {
     inset 1px 1px 0 var(--win-light),
     inset -1px -1px 0 var(--win-shadow);
   flex-shrink: 0;
+  /* Isolate layout so leaderboard updates repaint less of the tree */
+  contain: layout;
 }
 .rankings-window .win-title {
   font-size: var(--poptu-row-text);

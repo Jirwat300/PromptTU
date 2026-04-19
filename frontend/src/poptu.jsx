@@ -1,6 +1,15 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  memo,
+  startTransition,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import './poptu.css'
-import lizard1 from './assets/Lizard1.PNG'
+import lizard1 from './assets/Lizard1.webp'
 /* Lizard2–5 load after first paint (dynamic import) to speed initial mobile load */
 import iconHome from './assets/computer_icon.png'
 import iconHelp from './assets/question_icon.png'
@@ -11,7 +20,7 @@ import iconShare from './assets/internet_icon.png'
  *
  * Features:
  *   - Faculty picker (blocks the game until a faculty is chosen)
- *   - Clickable lizard that RANDOMLY swaps between 5 PNG poses each click
+ *   - Clickable lizard that RANDOMLY swaps between 5 WebP poses each click
  *   - Big blue 4-digit LCD — session click count only (Popcat-style), not global faculty total
  *   - Per-faculty Rankings window — REAL, shared via backend API
  *     (GET /api/ranking/scores, POST /api/ranking/pop)
@@ -57,10 +66,12 @@ const JITTER_MIN = 0.08     // stdev/mean threshold. Humans jitter ≳ 0.15
  *  the backend, set VITE_API_URL to the backend's Vercel URL.             */
 const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
 /** PT mark on lizard stage — from public/ so URL respects Vite base (Vercel-safe) */
-const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.png`
-const RANKING_REFRESH_MS = 4000          // leaderboard poll while tab visible
+const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.webp`
+const RANKING_REFRESH_MS = 10000         // leaderboard poll while tab visible (lower = more network + re-renders)
 const RANKING_REFRESH_HIDDEN_MS = 30000 // slow poll when tab in background (saves work + data)
 const POP_FLUSH_MS = 800                  // batch window for /api/ranking/pop
+/** Cap simultaneous “+1” floaters — rapid clicks used to grow DOM without bound. */
+const MAX_FLOATERS = 12
 
 /* ----------------------------- Lizard poses ---------------------------- */
 function pickRandomPose(currentSrc, poses) {
@@ -70,7 +81,7 @@ function pickRandomPose(currentSrc, poses) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-function Lizard({ src }) {
+const Lizard = memo(function Lizard({ src }) {
   return (
     <img
       src={src}
@@ -80,7 +91,7 @@ function Lizard({ src }) {
       decoding="async"
     />
   )
-}
+})
 
 /* ---------------------------- 7-segment digit -------------------------- */
 
@@ -284,6 +295,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
   /** Locally applied (optimistic) additions per faculty we've already rendered in the
    *  counter but are still waiting for the server round-trip to confirm. */
   const optimisticRef = useRef({})
+  /** Abort stale in-flight GET /scores when a new poll starts or component unmounts. */
+  const scoresFetchAbortRef = useRef(null)
 
   // Mark body for theme background
   useEffect(() => {
@@ -295,10 +308,10 @@ export default function PopTu({ onNavigateToComingSoon }) {
   useEffect(() => {
     let cancelled = false
     Promise.all([
-      import('./assets/Lizard2.PNG'),
-      import('./assets/Lizard3.PNG'),
-      import('./assets/Lizard4.PNG'),
-      import('./assets/Lizard5.PNG'),
+      import('./assets/Lizard2.webp'),
+      import('./assets/Lizard3.webp'),
+      import('./assets/Lizard4.webp'),
+      import('./assets/Lizard5.webp'),
     ])
       .then((mods) => {
         if (cancelled) return
@@ -318,8 +331,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
   // -------------------- Fetch scores from backend --------------------
   const fetchScores = useCallback(async () => {
+    scoresFetchAbortRef.current?.abort()
+    const ac = new AbortController()
+    scoresFetchAbortRef.current = ac
     try {
-      const res = await fetch(`${API_BASE}/api/ranking/scores`, { cache: 'no-store' })
+      const res = await fetch(`${API_BASE}/api/ranking/scores`, {
+        cache: 'no-store',
+        signal: ac.signal,
+      })
       if (!res.ok) return
       const json = await res.json()
       if (json?.scores) {
@@ -329,9 +348,12 @@ export default function PopTu({ onNavigateToComingSoon }) {
         for (const [id, add] of Object.entries(optimisticRef.current)) {
           merged[id] = (merged[id] ?? 0) + add
         }
-        setScores(merged)
+        startTransition(() => {
+          setScores(merged)
+        })
       }
-    } catch {
+    } catch (e) {
+      if (e?.name === 'AbortError') return
       /* network hiccup — we'll try again on the next poll */
     }
   }, [])
@@ -351,6 +373,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
     return () => {
       clearInterval(iv)
       document.removeEventListener('visibilitychange', onVisibility)
+      scoresFetchAbortRef.current?.abort()
     }
   }, [fetchScores])
 
@@ -377,7 +400,12 @@ export default function PopTu({ onNavigateToComingSoon }) {
           (optimisticRef.current[facultyId] ?? 0) - delta,
           0,
         )
-        setScores((prev) => ({ ...prev, [facultyId]: json.count + (optimisticRef.current[facultyId] ?? 0) }))
+        startTransition(() => {
+          setScores((prev) => ({
+            ...prev,
+            [facultyId]: json.count + (optimisticRef.current[facultyId] ?? 0),
+          }))
+        })
       } else {
         // roll back optimistic add on error
         optimisticRef.current[facultyId] = Math.max(
@@ -456,7 +484,10 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
     // Floater +1
     const fid = ++floaterIdRef.current
-    setFloaters((fs) => [...fs, { id: fid }])
+    setFloaters((fs) => {
+      const next = [...fs, { id: fid }]
+      return next.length > MAX_FLOATERS ? next.slice(-MAX_FLOATERS) : next
+    })
     setTimeout(() => setFloaters((fs) => fs.filter((f) => f.id !== fid)), 700)
 
     // Anti-cheat
@@ -576,6 +607,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
               src={STAGE_PT_LOGO}
               alt=""
               decoding="async"
+              fetchPriority="low"
               aria-hidden="true"
             />
           </div>
