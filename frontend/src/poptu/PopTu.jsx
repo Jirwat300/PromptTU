@@ -17,7 +17,6 @@ import {
   API_BASE,
   CPS_CAP,
   FACULTIES,
-  JITTER_MIN,
   MAX_CLICK_BUFFER,
   MAX_FLOATERS,
   POP_FLUSH_MS,
@@ -433,20 +432,17 @@ export default function PopTu({ onNavigateToComingSoon }) {
     }
   }, [flushPending])
 
+  // Client-side guard: flag only obviously super-human sustained CPS.
+  // Real enforcement lives on the server (per-IP rate limit + DB clamp);
+  // anything stricter here just hurts fast but legit clickers.
   const detectCheating = useCallback(() => {
     const buf = clickTimes.current
     if (buf.length < MAX_CLICK_BUFFER) return false
     const deltas = []
     for (let i = 1; i < buf.length; i++) deltas.push(buf[i] - buf[i - 1])
     const mean = deltas.reduce((a, b) => a + b, 0) / deltas.length
-    const variance = deltas.reduce((a, b) => a + (b - mean) ** 2, 0) / deltas.length
-    const stdev = Math.sqrt(variance)
-    const jitter = mean > 0 ? stdev / mean : 0
     const cps = 1000 / Math.max(1, mean)
-
-    if (cps > CPS_CAP) return true
-    if (mean < 45 && jitter < JITTER_MIN) return true
-    return false
+    return cps > CPS_CAP
   }, [])
 
   const onLizardClick = useCallback(() => {
