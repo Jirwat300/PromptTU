@@ -259,8 +259,8 @@ app.post('/api/ranking/pop', async (req, res) => {
     // Per-IP rate limit (req.ip respects trust proxy when VERCEL / TRUST_PROXY is set)
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     if (isTurnstileEnabled()) {
-      // TURNSTILE_MODE=enforce (default): reject missing/failed token.
-      // TURNSTILE_MODE=monitor: accept request, but annotate result in X-Turnstile-Result.
+      // TURNSTILE_MODE=monitor (default): accept request, annotate result in X-Turnstile-Result.
+      // TURNSTILE_MODE=enforce: reject missing/failed token (except verify transport outage).
       const mode = getTurnstileMode();
       const turnstileToken =
         typeof req.body?.turnstile_token === 'string' ? req.body.turnstile_token.trim() : '';
@@ -276,11 +276,14 @@ app.post('/api/ranking/pop', async (req, res) => {
           remoteIp: ip,
         });
         if (!verdict.ok) {
-          if (mode === 'enforce') {
+          const isTransportFailure =
+            verdict.errorCodes.includes('verify-request-failed')
+            || verdict.errorCodes.includes('verify-http-error');
+          if (mode === 'enforce' && !isTransportFailure) {
             return res.status(403).json({ status: 'error', message: 'captcha failed' });
           }
           const errs = verdict.errorCodes.length > 0 ? verdict.errorCodes.join(',') : 'unknown';
-          res.set('X-Turnstile-Result', `failed:${errs}`);
+          res.set('X-Turnstile-Result', isTransportFailure ? `soft-fail:${errs}` : `failed:${errs}`);
         } else {
           res.set('X-Turnstile-Result', 'passed');
         }

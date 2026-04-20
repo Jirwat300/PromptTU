@@ -13,10 +13,28 @@ function isTurnstileEnabled() {
   return getSecret().length > 0;
 }
 
+function readTurnstileModeEnvRaw() {
+  if (typeof process.env.TURNSTILE_MODE === 'string') {
+    return process.env.TURNSTILE_MODE;
+  }
+  for (const [k, v] of Object.entries(process.env)) {
+    if (typeof v !== 'string') continue;
+    if (!v.trim()) continue;
+    // Accept near-miss env names like TUR...TILE_MODE to avoid rollout lockouts.
+    if (/^TURN.*TILE_MODE$/i.test(k)) {
+      return v;
+    }
+  }
+  return '';
+}
+
 function getTurnstileMode() {
-  const raw = (process.env.TURNSTILE_MODE || 'enforce').trim().toLowerCase();
+  // Default to monitor to avoid accidental score lockouts during rollout.
+  const raw = (readTurnstileModeEnvRaw() || 'monitor')
+    .trim()
+    .toLowerCase();
   if (raw === 'off' || raw === 'monitor' || raw === 'enforce') return raw;
-  return 'enforce';
+  return 'monitor';
 }
 
 /**

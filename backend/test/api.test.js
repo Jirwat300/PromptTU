@@ -28,6 +28,7 @@ describe('API', () => {
     delete process.env.TURNSTILE_SECRET_KEY;
     delete process.env.TURNSTILE_VERIFY_URL;
     delete process.env.TURNSTILE_MODE;
+    delete process.env.TURNXSTILE_MODE;
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_ANON_KEY;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -125,6 +126,7 @@ describe('API', () => {
 
   test('ranking/pop requires turnstile token when secret is configured', async () => {
     process.env.TURNSTILE_SECRET_KEY = 'secret';
+    process.env.TURNSTILE_MODE = 'enforce';
     process.env.SUPABASE_URL = '';
     process.env.SUPABASE_ANON_KEY = '';
     process.env.SUPABASE_SERVICE_ROLE_KEY = '';
@@ -139,6 +141,7 @@ describe('API', () => {
 
   test('ranking/pop rejects invalid turnstile token', async () => {
     process.env.TURNSTILE_SECRET_KEY = 'secret';
+    process.env.TURNSTILE_MODE = 'enforce';
     process.env.SUPABASE_URL = '';
     process.env.SUPABASE_ANON_KEY = '';
     process.env.SUPABASE_SERVICE_ROLE_KEY = '';
@@ -153,6 +156,42 @@ describe('API', () => {
       .send({ faculty_id: 'law', delta: 1, turnstile_token: 'bad-token' });
     assert.equal(res.status, 403);
     assert.equal(res.body.message, 'captcha failed');
+  });
+
+  test('ranking/pop defaults to monitor mode when TURNSTILE_MODE is unset', async () => {
+    process.env.TURNSTILE_SECRET_KEY = 'secret';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .send({ faculty_id: 'law', delta: 1 });
+    assert.equal(res.status, 500);
+    assert.equal(res.headers['x-turnstile-result'], 'missing');
+  });
+
+  test('ranking/pop enforce mode soft-fails when turnstile verify transport is down', async () => {
+    process.env.TURNSTILE_SECRET_KEY = 'secret';
+    process.env.TURNSTILE_MODE = 'enforce';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    global.fetch = async () => {
+      throw new Error('network down');
+    };
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .send({ faculty_id: 'law', delta: 1, turnstile_token: 'token' });
+    assert.equal(res.status, 500);
+    assert.ok(String(res.headers['x-turnstile-result'] || '').startsWith('soft-fail:'));
   });
 
   test('ranking/pop monitor mode does not block missing token', async () => {
@@ -170,5 +209,15 @@ describe('API', () => {
       .send({ faculty_id: 'law', delta: 1 });
     assert.equal(res.status, 500);
     assert.equal(res.headers['x-turnstile-result'], 'missing');
+  });
+
+  test('health accepts near-miss turnstile mode env names', async () => {
+    process.env.TURNXSTILE_MODE = 'enforce';
+    process.env.TURNSTILE_SECRET_KEY = 'secret';
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app).get('/api/health');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.turnstile_mode, 'enforce');
   });
 });

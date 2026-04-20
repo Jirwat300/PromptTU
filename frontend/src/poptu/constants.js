@@ -7,8 +7,18 @@ export const CPS_CAP = 25
 export const JITTER_MIN = 0.08
 
 export const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
-export const TURNSTILE_SITE_KEY =
-  (import.meta.env && import.meta.env.VITE_TURNSTILE_SITE_KEY) || ''
+function resolveTurnstileSiteKey() {
+  const env = import.meta.env || {}
+  const direct = env.VITE_TURNSTILE_SITE_KEY
+  if (typeof direct === 'string' && direct.trim()) return direct.trim()
+  for (const [k, v] of Object.entries(env)) {
+    if (typeof v !== 'string' || !v.trim()) continue
+    // Accept near-miss names to avoid silent captcha misconfiguration.
+    if (/^VITE_TURN.*TILE.*SITE.*KEY$/i.test(k)) return v.trim()
+  }
+  return ''
+}
+export const TURNSTILE_SITE_KEY = resolveTurnstileSiteKey()
 export const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.webp`
 export const RANKING_REFRESH_MS = 10000
 export const RANKING_REFRESH_HIDDEN_MS = 30000
