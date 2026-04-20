@@ -13,11 +13,23 @@ const POP_BLOCK_SECONDS = 600;
 
 const popBuckets = new Map();
 
-function hasSharedPopRedisEnv() {
-  return Boolean(
+function resolveRedisEnv() {
+  const url = (
     process.env.UPSTASH_REDIS_REST_URL ||
-      process.env.KV_REST_API_URL,
-  );
+    process.env.KV_REST_API_URL ||
+    ''
+  ).trim();
+  const token = (
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.KV_REST_API_TOKEN ||
+    ''
+  ).trim();
+  return { url, token };
+}
+
+function hasSharedPopRedisEnv() {
+  const { url, token } = resolveRedisEnv();
+  return Boolean(url && token);
 }
 
 const prodLike =
@@ -33,16 +45,17 @@ let upstash = null;
 
 function getUpstash() {
   if (upstash !== null) return upstash || null;
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  const { url, token } = resolveRedisEnv();
   if (!url || !token) {
     upstash = false;
     return null;
   }
   try {
     const { Redis } = require('@upstash/redis');
-    // Supports UPSTASH_* and Vercel KV-style KV_REST_API_* env names.
-    upstash = Redis.fromEnv();
+    // Construct explicitly: Redis.fromEnv() only recognises the
+    // UPSTASH_REDIS_REST_* env names, but Vercel's Upstash marketplace
+    // integration injects KV_REST_API_* instead.
+    upstash = new Redis({ url, token });
     return upstash;
   } catch (e) {
     console.warn('[popRateLimit] Upstash init failed, using memory:', e.message);

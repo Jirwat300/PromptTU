@@ -8,9 +8,26 @@ const RPC_STEP_MAX = 100;
 /** @type {import('@upstash/redis').Redis | null | false} */
 let redisClient = null;
 
+// Support both Upstash-native (`UPSTASH_REDIS_REST_*`) and Vercel KV-style
+// (`KV_REST_API_*`) env names. Vercel's Upstash marketplace integration
+// injects the `KV_*` set by default, which would otherwise look "missing"
+// to us and silently disable write-behind.
+function resolveRedisEnv() {
+  const url = (
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.KV_REST_API_URL ||
+    ''
+  ).trim();
+  const token = (
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.KV_REST_API_TOKEN ||
+    ''
+  ).trim();
+  return { url, token };
+}
+
 function hasRedisEnv() {
-  const url = (process.env.UPSTASH_REDIS_REST_URL || '').trim();
-  const token = (process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+  const { url, token } = resolveRedisEnv();
   return Boolean(url && token);
 }
 
@@ -22,9 +39,16 @@ function isWriteBehindEnabled() {
 
 function getRedisClient() {
   if (redisClient !== null) return redisClient || null;
+  const { url, token } = resolveRedisEnv();
+  if (!url || !token) {
+    redisClient = false;
+    return null;
+  }
   try {
     const { Redis } = require('@upstash/redis');
-    redisClient = Redis.fromEnv();
+    // Construct explicitly instead of Redis.fromEnv() since fromEnv only
+    // recognises UPSTASH_REDIS_REST_* names.
+    redisClient = new Redis({ url, token });
     return redisClient;
   } catch (err) {
     console.warn('[writeBehind] Redis init failed:', err && err.message ? err.message : err);

@@ -220,19 +220,20 @@ app.get('/api', (req, res) => {
 
 app.get('/api/health', async (req, res) => {
   try {
-    // Check if Supabase client is configured
-    res.json({ 
+    const sessionBindIp = (process.env.POP_SESSION_BIND_IP || '1').trim().toLowerCase();
+    res.json({
       supabase_configured: !!supabase,
       turnstile_enabled: isTurnstileEnabled(),
       turnstile_mode: isTurnstileEnabled() ? getTurnstileMode() : 'off',
       session_token_enabled: isSessionTokenEnabled(),
       session_token_mode: isSessionTokenEnabled() ? getSessionTokenMode() : 'off',
+      session_bind_ip: !(sessionBindIp === '0' || sessionBindIp === 'false' || sessionBindIp === 'off'),
       write_behind_enabled: isWriteBehindEnabled(),
       client_rate_mode: getClientRateMode(),
       client_cps_max: getClientCpsMax(),
       cors_enforce: corsEnforce,
       pop_origin_enforce: isPopOriginEnforced(),
-      message: 'Supabase integration ready.' 
+      message: 'Supabase integration ready.'
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -459,7 +460,8 @@ app.get('/api/ranking/session', async (req, res) => {
     if (!isSessionTokenEnabled()) {
       return res.json({ status: 'success', enabled: false });
     }
-    const issued = issueSessionToken();
+    const ip = req.ip || req.socket?.remoteAddress || '';
+    const issued = issueSessionToken({ ip });
     if (!issued?.token) {
       return res.status(500).json({ status: 'error', message: 'failed to issue session token' });
     }
@@ -523,7 +525,7 @@ app.post('/api/ranking/pop', async (req, res) => {
       const mode = getSessionTokenMode();
       const sessionToken =
         typeof req.body?.session_token === 'string' ? req.body.session_token.trim() : '';
-      const verdict = verifySessionToken(sessionToken);
+      const verdict = verifySessionToken(sessionToken, { ip });
       if (!verdict.ok) {
         if (mode === 'enforce') {
           return res.status(403).json({ status: 'error', message: 'invalid session token' });

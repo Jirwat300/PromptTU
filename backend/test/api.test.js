@@ -374,17 +374,75 @@ describe('API', () => {
     unloadApp();
     const app = loadApp();
 
-    const issued = await request(app).get('/api/ranking/session');
+    // Pin the client IP across both requests — the token is bound to the
+    // issuer IP, so issue and pop must be seen as coming from the same host.
+    const clientIp = `198.51.100.${Math.floor(Math.random() * 200) + 1}`;
+
+    const issued = await request(app)
+      .get('/api/ranking/session')
+      .set('X-Forwarded-For', clientIp);
     assert.equal(issued.status, 200);
     assert.equal(issued.body.enabled, true);
     assert.ok(typeof issued.body.token === 'string' && issued.body.token.length > 0);
 
     const res = await request(app)
       .post('/api/ranking/pop')
-      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .set('X-Forwarded-For', clientIp)
       .send({ faculty_id: 'law', delta: 1, session_token: issued.body.token });
     assert.equal(res.status, 500);
     assert.equal(res.headers['x-session-token-result'], 'passed');
+  });
+
+  test('session token enforce mode rejects rotated IP (ip-binding)', async () => {
+    process.env.POP_SESSION_SECRET = 'session-secret';
+    process.env.POP_SESSION_MODE = 'enforce';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+
+    const issuerIp = `198.51.100.${Math.floor(Math.random() * 100) + 1}`;
+    const attackerIp = `203.0.113.${Math.floor(Math.random() * 100) + 1}`;
+
+    const issued = await request(app)
+      .get('/api/ranking/session')
+      .set('X-Forwarded-For', issuerIp);
+    assert.equal(issued.status, 200);
+
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', attackerIp)
+      .send({ faculty_id: 'law', delta: 1, session_token: issued.body.token });
+    assert.equal(res.status, 403);
+    assert.equal(res.body.message, 'invalid session token');
+  });
+
+  test('session token ip-binding can be disabled via env', async () => {
+    process.env.POP_SESSION_SECRET = 'session-secret';
+    process.env.POP_SESSION_MODE = 'enforce';
+    process.env.POP_SESSION_BIND_IP = '0';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+
+    const issued = await request(app)
+      .get('/api/ranking/session')
+      .set('X-Forwarded-For', '198.51.100.9');
+
+    // Different IP on pop; with binding off the token must still be accepted.
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', '203.0.113.9')
+      .send({ faculty_id: 'law', delta: 1, session_token: issued.body.token });
+    assert.equal(res.status, 500);
+    assert.equal(res.headers['x-session-token-result'], 'passed');
+
+    delete process.env.POP_SESSION_BIND_IP;
   });
 
   test('health accepts near-miss turnstile mode env names', async () => {
