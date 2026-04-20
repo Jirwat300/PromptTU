@@ -3,6 +3,11 @@
 --
 -- Run this once in the Supabase SQL editor (Project → SQL → New query).
 -- It is idempotent: safe to re-run if you tweak RLS.
+--
+-- Analytics DDL lives only in migrations (avoid drift with this file):
+--   migrations/20260419_analytics_events.sql
+--   migrations/20260422_admin_analytics_event_counts.sql
+-- Apply those (or `supabase db push`) after this core leaderboard setup.
 -- ============================================================================
 
 -- 1. Table ------------------------------------------------------------------
@@ -119,43 +124,3 @@ on conflict (id) do update set
   emoji = excluded.emoji;
 -- NOTE: `count` intentionally NOT touched in on-conflict so re-running this
 -- file won't wipe live scores.
-
--- 5. Analytics (POST /api/analytics) -----------------------------------------
-create table if not exists public.analytics_events (
-  id          bigserial primary key,
-  created_at  timestamptz not null default now(),
-  event_type  text not null,
-  path        text,
-  device      text,
-  referrer    text,
-  watchtower  text,
-  metadata    jsonb,
-  user_id     text
-);
-
-comment on table public.analytics_events is 'Lightweight client analytics ingested via Express + service_role';
-
-create index if not exists analytics_events_created_at_idx
-  on public.analytics_events (created_at desc);
-
-create index if not exists analytics_events_event_type_idx
-  on public.analytics_events (event_type);
-
-alter table public.analytics_events enable row level security;
--- No SELECT/INSERT policies: only the service role (backend) touches this table.
-
-create or replace function public.admin_analytics_event_counts()
-returns table (event_type text, cnt bigint)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select ae.event_type, count(*)::bigint as cnt
-  from public.analytics_events ae
-  group by ae.event_type
-  order by cnt desc;
-$$;
-
-revoke all on function public.admin_analytics_event_counts() from public;
-grant execute on function public.admin_analytics_event_counts() to service_role;

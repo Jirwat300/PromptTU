@@ -6,19 +6,59 @@ const {
   takePopBudget,
   POP_MAX_DELTA_PER_CALL,
 } = require('../src/popRateLimit');
+const {
+  isTurnstileEnabled,
+  getTurnstileMode,
+  verifyTurnstileToken,
+} = require('../src/turnstileVerify');
 
 const POPTU_FACULTIES = require(path.join(__dirname, '../data/poptu-faculties.json'));
 const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
 
 const app = express();
 
-// Middleware — set CORS_ORIGINS (comma-separated) in production to restrict browser callers.
+// Behind Vercel (or when TRUST_PROXY=1): use Express-resolved client IP for rate limits.
+const trustProxy =
+  process.env.VERCEL === '1' || process.env.TRUST_PROXY === '1';
+app.set('trust proxy', trustProxy ? 1 : false);
+
+// Middleware — set CORS_ORIGINS (comma-separated) for cross-origin browser callers.
+// When NODE_ENV=production or VERCEL=1, empty CORS_ORIGINS disables cross-origin (same-origin still works).
+// Local `vercel dev` often sets VERCEL: if the UI is on another port, set CORS_ORIGINS (e.g. http://localhost:5173).
+const isProdLike =
+  process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
 const corsOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
-app.use(corsOrigins.length > 0 ? cors({ origin: corsOrigins }) : cors());
+const corsMiddleware =
+  corsOrigins.length > 0
+    ? cors({ origin: corsOrigins })
+    : isProdLike
+      ? cors({ origin: false })
+      : cors();
+app.use(corsMiddleware);
 app.use(express.json());
+
+const popPostOrigins = (
+  process.env.POP_POST_ORIGINS || process.env.CORS_ORIGINS || ''
+)
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+function isAllowedPopOrigin(req) {
+  if (!isProdLike || popPostOrigins.length === 0) return true;
+  const origin = (req.get('origin') || '').trim();
+  if (origin && popPostOrigins.includes(origin)) return true;
+  const referer = (req.get('referer') || '').trim();
+  if (!referer) return false;
+  try {
+    return popPostOrigins.includes(new URL(referer).origin);
+  } catch {
+    return false;
+  }
+}
 
 // Routes
 app.get('/api', (req, res) => {
@@ -34,6 +74,8 @@ app.get('/api/health', async (req, res) => {
     // Check if Supabase client is configured
     res.json({ 
       supabase_configured: !!supabase,
+      turnstile_enabled: isTurnstileEnabled(),
+      turnstile_mode: isTurnstileEnabled() ? getTurnstileMode() : 'off',
       message: 'Supabase integration ready.' 
     });
   } catch (error) {
@@ -210,21 +252,53 @@ app.post('/api/ranking/pop', async (req, res) => {
     if (d > POP_MAX_DELTA_PER_CALL) {
       return res.status(400).json({ status: 'error', message: `delta exceeds ${POP_MAX_DELTA_PER_CALL}` });
     }
+    if (!isAllowedPopOrigin(req)) {
+      return res.status(403).json({ status: 'error', message: 'forbidden origin' });
+    }
+
+    // Per-IP rate limit (req.ip respects trust proxy when VERCEL / TRUST_PROXY is set)
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    if (isTurnstileEnabled()) {
+      // TURNSTILE_MODE=enforce (default): reject missing/failed token.
+      // TURNSTILE_MODE=monitor: accept request, but annotate result in X-Turnstile-Result.
+      const mode = getTurnstileMode();
+      const turnstileToken =
+        typeof req.body?.turnstile_token === 'string' ? req.body.turnstile_token.trim() : '';
+      if (!turnstileToken) {
+        if (mode === 'enforce') {
+          return res.status(403).json({ status: 'error', message: 'captcha required' });
+        }
+        res.set('X-Turnstile-Result', 'missing');
+      }
+      if (turnstileToken) {
+        const verdict = await verifyTurnstileToken({
+          token: turnstileToken,
+          remoteIp: ip,
+        });
+        if (!verdict.ok) {
+          if (mode === 'enforce') {
+            return res.status(403).json({ status: 'error', message: 'captcha failed' });
+          }
+          const errs = verdict.errorCodes.length > 0 ? verdict.errorCodes.join(',') : 'unknown';
+          res.set('X-Turnstile-Result', `failed:${errs}`);
+        } else {
+          res.set('X-Turnstile-Result', 'passed');
+        }
+      }
+    }
+
+    const budget = await takePopBudget(ip, d);
+    if (budget.allowed <= 0) {
+      res.set('Retry-After', String(Math.max(1, Math.floor(budget.retryAfterSec || 1))));
+      return res.status(429).json({ status: 'error', message: 'slow down' });
+    }
     if (!supabase) {
       return res.status(500).json({ status: 'error', message: 'Supabase client not initialized' });
     }
 
-    // Simple per-IP rate limit
-    const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim()
-            || req.ip || req.socket?.remoteAddress || 'unknown';
-    const allowed = await takePopBudget(ip, d);
-    if (allowed <= 0) {
-      return res.status(429).json({ status: 'error', message: 'slow down' });
-    }
-
     const { data, error } = await supabase.rpc('increment_faculty_score', {
       fid: faculty_id,
-      delta: allowed,
+      delta: budget.allowed,
     });
 
     if (error) {
@@ -232,7 +306,7 @@ app.post('/api/ranking/pop', async (req, res) => {
       return res.status(500).json({ status: 'error', message: error.message });
     }
 
-    return res.json({ status: 'success', count: Number(data) || 0, applied: allowed });
+    return res.json({ status: 'success', count: Number(data) || 0, applied: budget.allowed });
   } catch (err) {
     console.error('[ranking] pop error:', err);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });

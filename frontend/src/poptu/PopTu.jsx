@@ -24,6 +24,7 @@ import {
   RANKING_REFRESH_HIDDEN_MS,
   RANKING_REFRESH_MS,
   STAGE_PT_LOGO,
+  TURNSTILE_SITE_KEY,
   WIN_DECO_BTN,
 } from './constants.js'
 import Lizard from './Lizard.jsx'
@@ -35,6 +36,7 @@ import FacultyPicker from './modals/FacultyPicker.jsx'
 import ReadyDialog from './modals/ReadyDialog.jsx'
 import { loadPoptuUserState, writePoptuUserState } from './userStateStorage.js'
 import { sendPoptuPageView } from '../analytics.js'
+import { createTurnstileToken } from './turnstileClient.js'
 
 const PERSISTED_FACULTY_IDS = FACULTIES.map((f) => f.id)
 const PERSISTED_INIT = loadPoptuUserState(PERSISTED_FACULTY_IDS)
@@ -67,6 +69,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const floaterIdRef = useRef(0)
   const pendingDeltaRef = useRef(0)
   const flushTimerRef = useRef(null)
+  const flushInFlightRef = useRef(false)
   const optimisticRef = useRef({})
   const scoresFetchGenRef = useRef(0)
   const facultyIdRef = useRef(null)
@@ -171,18 +174,27 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [allFacultiesOpen, fetchScores])
 
   const flushPending = useCallback(async () => {
+    if (flushInFlightRef.current) return
     if (!facultyId) return
     const delta = pendingDeltaRef.current
     if (delta <= 0) return
+    flushInFlightRef.current = true
     pendingDeltaRef.current = 0
 
     optimisticRef.current[facultyId] = (optimisticRef.current[facultyId] ?? 0) + delta
 
     try {
+      const turnstileToken = TURNSTILE_SITE_KEY
+        ? await createTurnstileToken(TURNSTILE_SITE_KEY)
+        : null
       const res = await fetch(`${API_BASE}/api/ranking/pop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ faculty_id: facultyId, delta }),
+        body: JSON.stringify({
+          faculty_id: facultyId,
+          delta,
+          turnstile_token: turnstileToken || undefined,
+        }),
       })
       const json = await res.json().catch(() => ({}))
       const serverCount = Number(json?.count)
@@ -216,6 +228,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
         0,
       )
       pendingDeltaRef.current += delta
+    } finally {
+      flushInFlightRef.current = false
+      if (pendingDeltaRef.current > 0 && !flushTimerRef.current) {
+        flushTimerRef.current = setTimeout(() => {
+          flushTimerRef.current = null
+          flushPending()
+        }, POP_FLUSH_MS)
+      }
     }
   }, [facultyId])
 
