@@ -2,6 +2,7 @@ let scriptPromise = null
 let widgetId = null
 let pendingResolve = null
 let pendingTimer = null
+const SCRIPT_LOAD_TIMEOUT_MS = 3000
 
 function getTurnstile() {
   if (typeof window === 'undefined') return null
@@ -13,11 +14,19 @@ function ensureScriptLoaded() {
   if (typeof document === 'undefined') return Promise.resolve(false)
 
   scriptPromise = new Promise((resolve) => {
+    let settled = false
+    const done = (ok) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      resolve(ok)
+    }
+    const timer = setTimeout(() => done(false), SCRIPT_LOAD_TIMEOUT_MS)
     const existing = document.querySelector('script[data-turnstile-script="1"]')
     if (existing) {
-      existing.addEventListener('load', () => resolve(true), { once: true })
-      existing.addEventListener('error', () => resolve(false), { once: true })
-      if (getTurnstile()) resolve(true)
+      existing.addEventListener('load', () => done(true), { once: true })
+      existing.addEventListener('error', () => done(false), { once: true })
+      if (getTurnstile()) done(true)
       return
     }
 
@@ -26,8 +35,8 @@ function ensureScriptLoaded() {
     s.async = true
     s.defer = true
     s.setAttribute('data-turnstile-script', '1')
-    s.onload = () => resolve(true)
-    s.onerror = () => resolve(false)
+    s.onload = () => done(true)
+    s.onerror = () => done(false)
     document.head.appendChild(s)
   })
 
