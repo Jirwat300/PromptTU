@@ -4,8 +4,8 @@
  * Optional: set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN for shared limits across instances.
  */
 
-const POP_MAX_DELTA_PER_SEC = 12;
-const POP_MAX_DELTA_PER_MIN = 120;
+const POP_MAX_DELTA_PER_SEC = 24;
+const POP_MAX_DELTA_PER_MIN = 720;
 const POP_MAX_DELTA_PER_CALL = 50;
 const POP_VIOLATIONS_TO_BLOCK = 8;
 const POP_VIOLATION_WINDOW_SEC = 60;

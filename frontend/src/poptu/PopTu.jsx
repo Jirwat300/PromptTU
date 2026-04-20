@@ -445,7 +445,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
     const cps = 1000 / Math.max(1, mean)
 
     if (cps > CPS_CAP) return true
-    if (mean < 90 && jitter < JITTER_MIN) return true
+    if (mean < 45 && jitter < JITTER_MIN) return true
     return false
   }, [])
 
