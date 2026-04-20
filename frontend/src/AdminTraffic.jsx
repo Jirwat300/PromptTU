@@ -149,6 +149,9 @@ export default function AdminTraffic() {
   const backToGame = () => {
     window.location.hash = '#poptu'
   }
+  const goAbuse = () => {
+    window.location.hash = '#admin/pop'
+  }
 
   return (
     <div className={`admin-traffic${loading ? ' admin-traffic--busy' : ''}`} lang="th">
@@ -164,9 +167,14 @@ export default function AdminTraffic() {
             สรุป traffic จาก <code>analytics_events</code> — อัปเดตแบบ on-demand
           </p>
         </div>
-        <button type="button" className="admin-traffic__btn-ghost" onClick={backToGame}>
-          ← กลับเกม
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="admin-traffic__btn-ghost" onClick={goAbuse}>
+            POP abuse →
+          </button>
+          <button type="button" className="admin-traffic__btn-ghost" onClick={backToGame}>
+            ← กลับเกม
+          </button>
+        </div>
       </header>
 
       {!base && (

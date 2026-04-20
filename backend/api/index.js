@@ -4,7 +4,13 @@ const path = require('path');
 const supabase = require('../src/supabaseClient');
 const {
   takePopBudget,
+  listBannedIps,
   POP_MAX_DELTA_PER_CALL,
+  POP_MAX_DELTA_PER_SEC,
+  POP_MAX_DELTA_PER_MIN,
+  POP_BLOCK_SECONDS,
+  POP_VIOLATIONS_TO_BLOCK,
+  POP_VIOLATION_WINDOW_SEC,
 } = require('../src/popRateLimit');
 const {
   isTurnstileEnabled,
@@ -364,6 +370,62 @@ app.get('/api/admin/analytics', async (req, res) => {
     });
   } catch (err) {
     console.error('[admin/analytics]', err);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
+/**
+ * Admin abuse dashboard feed: current scores + pending queue + banned IPs +
+ * rate-limit thresholds. Client polls this every few seconds and computes
+ * per-faculty velocity (delta / interval) locally.
+ */
+app.get('/api/admin/pop-abuse', async (req, res) => {
+  try {
+    if (!assertAdmin(req, res)) return;
+    if (!supabase) {
+      return res.status(500).json({ status: 'error', message: 'Supabase client is not initialized' });
+    }
+
+    const { data, error } = await supabase
+      .from('faculty_scores')
+      .select('id, name, emoji, count, updated_at')
+      .order('count', { ascending: false });
+
+    if (error) {
+      console.error('[admin/pop-abuse] fetch scores:', error.message);
+      return res.status(500).json({ status: 'error', message: error.message });
+    }
+
+    const pending = await getPendingMap().catch(() => ({}));
+    const banned = await listBannedIps({ limit: 100 }).catch(() => []);
+
+    const faculties = (data || []).map((r) => ({
+      id: r.id,
+      name: r.name,
+      emoji: r.emoji ?? '',
+      count: Number(r.count) || 0,
+      updated_at: r.updated_at || null,
+      pending: pending[r.id] || 0,
+    }));
+
+    res.set('Cache-Control', 'no-store');
+    return res.json({
+      status: 'success',
+      now: new Date().toISOString(),
+      faculties,
+      banned_ips: banned,
+      limits: {
+        per_sec: POP_MAX_DELTA_PER_SEC,
+        per_min: POP_MAX_DELTA_PER_MIN,
+        per_call: POP_MAX_DELTA_PER_CALL,
+        block_sec: POP_BLOCK_SECONDS,
+        violations_to_block: POP_VIOLATIONS_TO_BLOCK,
+        violation_window_sec: POP_VIOLATION_WINDOW_SEC,
+      },
+      write_behind_enabled: isWriteBehindEnabled(),
+    });
+  } catch (err) {
+    console.error('[admin/pop-abuse]', err);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 });

@@ -205,10 +205,63 @@ async function takePopBudget(ip, delta) {
   }
 }
 
+/**
+ * Admin-facing: list IPs currently blocked by {@link takePopBudget}.
+ * Scans `poptu:pop:ban:*` keys in Upstash and returns each with its
+ * remaining TTL. Falls back to `[]` when Redis is unavailable (in
+ * memory bans live inside {@link popBuckets} per serverless instance
+ * and aren't enumerable cross-instance, so we don't try).
+ *
+ * @param {{ limit?: number }} [opts]
+ * @returns {Promise<{ ip: string, ttl_sec: number }[]>}
+ */
+async function listBannedIps(opts = {}) {
+  const limit = Math.min(500, Math.max(1, Number(opts.limit) || 100));
+  const r = getUpstash();
+  if (!r) return [];
+  const banned = [];
+  const seen = new Set();
+  let cursor = '0';
+  try {
+    // Upstash scan returns [nextCursor, keys] per page; bail out once we
+    // loop or hit the caller's cap.
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const page = await r.scan(cursor, { match: 'poptu:pop:ban:*', count: 100 });
+      const nextCursor = Array.isArray(page) ? String(page[0]) : '0';
+      const keys = Array.isArray(page) ? (page[1] || []) : [];
+      for (const key of keys) {
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const ip = String(key).slice('poptu:pop:ban:'.length);
+        let ttl = -1;
+        try {
+          ttl = Number(await r.ttl(key));
+        } catch {
+          ttl = -1;
+        }
+        banned.push({
+          ip,
+          ttl_sec: Number.isFinite(ttl) && ttl > 0 ? ttl : 0,
+        });
+        if (banned.length >= limit) return banned;
+      }
+      if (!nextCursor || nextCursor === '0' || nextCursor === cursor) break;
+      cursor = nextCursor;
+    }
+  } catch (err) {
+    console.warn('[popRateLimit] listBannedIps scan failed:', err && err.message ? err.message : err);
+  }
+  return banned;
+}
+
 module.exports = {
   takePopBudget,
+  listBannedIps,
   POP_MAX_DELTA_PER_SEC,
   POP_MAX_DELTA_PER_MIN,
   POP_MAX_DELTA_PER_CALL,
   POP_BLOCK_SECONDS,
+  POP_VIOLATIONS_TO_BLOCK,
+  POP_VIOLATION_WINDOW_SEC,
 };

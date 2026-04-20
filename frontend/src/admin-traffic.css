@@ -526,6 +526,15 @@
   background: rgba(56, 189, 248, 0.06);
 }
 
+.admin-traffic__row--flagged td {
+  background: rgba(251, 113, 133, 0.12);
+  color: #fecdd3;
+}
+
+.admin-traffic__row--flagged:hover td {
+  background: rgba(251, 113, 133, 0.18);
+}
+
 .admin-traffic__td-nowrap {
   white-space: nowrap;
   color: #cbd5e1;
