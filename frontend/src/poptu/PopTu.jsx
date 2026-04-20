@@ -310,7 +310,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const serverCount = Number(json?.count)
       const appliedRaw = Number(json?.applied)
 
-      if (res.ok && Number.isFinite(serverCount)) {
+      if (res.ok) {
         const ack =
           Number.isFinite(appliedRaw) && appliedRaw >= 0 ? Math.min(appliedRaw, delta) : delta
         optimisticRef.current[facultyId] = Math.max(
@@ -319,12 +319,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
         )
         if (ack < delta) pendingDeltaRef.current += delta - ack
 
-        startTransition(() => {
-          setScores((prev) => ({
-            ...prev,
-            [facultyId]: serverCount + (optimisticRef.current[facultyId] ?? 0),
-          }))
-        })
+        if (Number.isFinite(serverCount)) {
+          startTransition(() => {
+            setScores((prev) => ({
+              ...prev,
+              [facultyId]: serverCount + (optimisticRef.current[facultyId] ?? 0),
+            }))
+          })
+        }
       } else {
         if (res.status === 403 && String(json?.message || '').includes('session')) {
           sessionTokenRef.current = null
@@ -371,6 +373,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const fid = facultyIdRef.current
       const delta = pendingDeltaRef.current
       if (!fid || delta <= 0) return
+      const firstClickMs = pendingFirstClickMsRef.current || 0
+      const lastClickMs = pendingLastClickMsRef.current || 0
       pendingDeltaRef.current = 0
       pendingFirstClickMsRef.current = 0
       pendingLastClickMsRef.current = 0
@@ -379,8 +383,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const body = JSON.stringify({
         faculty_id: fid,
         delta,
-        client_first_click_ms: pendingFirstClickMsRef.current || undefined,
-        client_last_click_ms: pendingLastClickMsRef.current || undefined,
+        client_first_click_ms: firstClickMs || undefined,
+        client_last_click_ms: lastClickMs || undefined,
         session_token: sessionTokenRef.current || undefined,
       })
       try {

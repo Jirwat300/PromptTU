@@ -17,9 +17,19 @@ const {
   issueSessionToken,
   verifySessionToken,
 } = require('../src/sessionToken');
+const {
+  enqueuePop,
+  flushPendingToDb,
+  getPendingMap,
+  isWriteBehindEnabled,
+} = require('../src/popWriteBehind');
 
 const POPTU_FACULTIES = require(path.join(__dirname, '../data/poptu-faculties.json'));
 const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
+const SCORES_FLUSH_INTERVAL_MS = 5000;
+const SCORES_CACHE_TTL_MS = 5000;
+let lastScoresFlushAttemptMs = 0;
+let scoresCache = { at: 0, payload: null };
 
 const app = express();
 
@@ -72,15 +82,27 @@ function isPopOriginEnforced() {
 }
 
 function getClientRateMode() {
-  const raw = (process.env.POP_CLIENT_RATE_MODE || 'monitor').trim().toLowerCase();
+  const raw = (process.env.POP_CLIENT_RATE_MODE || 'enforce').trim().toLowerCase();
   if (raw === 'off' || raw === 'monitor' || raw === 'enforce') return raw;
-  return 'monitor';
+  return 'enforce';
 }
 
 function getClientCpsMax() {
-  const raw = Number(process.env.POP_CLIENT_CPS_MAX || 30);
-  if (!Number.isFinite(raw)) return 30;
+  const raw = Number(process.env.POP_CLIENT_CPS_MAX || 25);
+  if (!Number.isFinite(raw)) return 25;
   return Math.min(80, Math.max(5, raw));
+}
+
+function shouldAllowInternalFlush(req) {
+  if (req.get('x-vercel-cron') === '1') return true;
+  const expected = (process.env.POP_FLUSH_INTERNAL_KEY || '').trim();
+  if (!expected) return false;
+  const got = (req.get('x-internal-key') || '').trim();
+  return got === expected;
+}
+
+function invalidateScoresCache() {
+  scoresCache = { at: 0, payload: null };
 }
 
 /**
@@ -130,6 +152,7 @@ app.get('/api/health', async (req, res) => {
       turnstile_mode: isTurnstileEnabled() ? getTurnstileMode() : 'off',
       session_token_enabled: isSessionTokenEnabled(),
       session_token_mode: isSessionTokenEnabled() ? getSessionTokenMode() : 'off',
+      write_behind_enabled: isWriteBehindEnabled(),
       client_rate_mode: getClientRateMode(),
       client_cps_max: getClientCpsMax(),
       cors_enforce: corsEnforce,
@@ -265,6 +288,19 @@ app.get('/api/ranking/scores', async (req, res) => {
     if (!supabase) {
       return res.status(500).json({ status: 'error', message: 'Supabase client not initialized' });
     }
+    const now = Date.now();
+    if (scoresCache.payload && now - scoresCache.at < SCORES_CACHE_TTL_MS) {
+      return res.json(scoresCache.payload);
+    }
+    if (isWriteBehindEnabled() && now - lastScoresFlushAttemptMs >= SCORES_FLUSH_INTERVAL_MS) {
+      lastScoresFlushAttemptMs = now;
+      try {
+        await flushPendingToDb(supabase);
+      } catch (err) {
+        console.warn('[ranking] opportunistic flush failed:', err && err.message ? err.message : err);
+      }
+    }
+
     const { data, error } = await supabase
       .from('faculty_scores')
       .select('id, name, emoji, count')
@@ -275,23 +311,45 @@ app.get('/api/ranking/scores', async (req, res) => {
       return res.status(500).json({ status: 'error', message: error.message });
     }
 
+    const pending = await getPendingMap();
+    const mergedRows = (data || []).map((r) => ({
+      ...r,
+      count: (Number(r.count) || 0) + (pending[r.id] || 0),
+    }));
+
     const scores = {};
-    for (const row of data || []) scores[row.id] = Number(row.count) || 0;
-    const top = (data || []).slice(0, 3).map((r) => ({
+    for (const row of mergedRows) scores[row.id] = Number(row.count) || 0;
+    const top = mergedRows.slice(0, 3).map((r) => ({
       id: r.id, name: r.name, emoji: r.emoji, score: Number(r.count) || 0,
     }));
     /** Full table for modal — ids / names / emojis from DB (stays in sync if SQL adds rows). */
-    const rows = (data || []).map((r) => ({
+    const rows = mergedRows.map((r) => ({
       id: r.id,
       name: r.name,
       emoji: r.emoji ?? '',
       count: Number(r.count) || 0,
     }));
 
+    const payload = { status: 'success', scores, top, rows };
+    scoresCache = { at: now, payload };
     res.set('Cache-Control', 'no-store');
-    return res.json({ status: 'success', scores, top, rows });
+    return res.json(payload);
   } catch (err) {
     console.error('[ranking] scores error:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
+app.post('/api/internal/flush-pop', async (req, res) => {
+  try {
+    if (!shouldAllowInternalFlush(req)) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const summary = await flushPendingToDb(supabase);
+    if (summary.flushed > 0) invalidateScoresCache();
+    return res.json({ status: 'success', ...summary });
+  } catch (err) {
+    console.error('[ranking] flush-pop error:', err);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 });
@@ -417,6 +475,18 @@ app.post('/api/ranking/pop', async (req, res) => {
       return res.status(500).json({ status: 'error', message: 'Supabase client not initialized' });
     }
 
+    if (isWriteBehindEnabled()) {
+      const queued = await enqueuePop(faculty_id, budget.allowed);
+      if (queued.queued) {
+        invalidateScoresCache();
+        return res.json({
+          status: 'success',
+          queued: true,
+          applied: budget.allowed,
+        });
+      }
+    }
+
     const { data, error } = await supabase.rpc('increment_faculty_score', {
       fid: faculty_id,
       delta: budget.allowed,
@@ -427,6 +497,7 @@ app.post('/api/ranking/pop', async (req, res) => {
       return res.status(500).json({ status: 'error', message: error.message });
     }
 
+    invalidateScoresCache();
     return res.json({ status: 'success', count: Number(data) || 0, applied: budget.allowed });
   } catch (err) {
     console.error('[ranking] pop error:', err);

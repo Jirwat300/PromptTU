@@ -29,6 +29,8 @@ describe('API', () => {
     delete process.env.POP_ORIGIN_ENFORCE;
     delete process.env.POP_CLIENT_RATE_MODE;
     delete process.env.POP_CLIENT_CPS_MAX;
+    delete process.env.POP_WRITE_BEHIND;
+    delete process.env.POP_FLUSH_INTERNAL_KEY;
     delete process.env.TURNSTILE_SECRET_KEY;
     delete process.env.TURNSTILE_VERIFY_URL;
     delete process.env.TURNSTILE_MODE;
@@ -38,6 +40,8 @@ describe('API', () => {
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_ANON_KEY;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
     global.fetch = originalFetch;
     unloadApp();
   });
@@ -75,6 +79,21 @@ describe('API', () => {
     const app = loadApp();
     const res = await request(app).get('/api/admin/analytics');
     assert.equal(res.status, 401);
+  });
+
+  test('POST /api/internal/flush-pop requires auth', async () => {
+    const app = loadApp();
+    const res = await request(app).post('/api/internal/flush-pop');
+    assert.equal(res.status, 401);
+  });
+
+  test('POST /api/internal/flush-pop allows vercel cron header', async () => {
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/internal/flush-pop')
+      .set('x-vercel-cron', '1');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.status, 'success');
   });
 
   test('GET /api/ranking/session returns disabled when secret is unset', async () => {
@@ -170,7 +189,8 @@ describe('API', () => {
     assert.equal(res.body.message, 'too fast');
   });
 
-  test('client click timestamp check is monitor by default', async () => {
+  test('client click timestamp check monitor mode does not block', async () => {
+    process.env.POP_CLIENT_RATE_MODE = 'monitor';
     process.env.POP_CLIENT_CPS_MAX = '20';
     process.env.TRUST_PROXY = '1';
     process.env.SUPABASE_URL = '';
