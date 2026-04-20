@@ -25,6 +25,7 @@ describe('API', () => {
     delete process.env.CORS_ORIGINS;
     delete process.env.TRUST_PROXY;
     delete process.env.POP_POST_ORIGINS;
+    delete process.env.POP_ORIGIN_ENFORCE;
     delete process.env.TURNSTILE_SECRET_KEY;
     delete process.env.TURNSTILE_VERIFY_URL;
     delete process.env.TURNSTILE_MODE;
@@ -91,9 +92,10 @@ describe('API', () => {
     assert.equal(app.get('trust proxy'), 1);
   });
 
-  test('production rejects pop when origin is not allowlisted', async () => {
+  test('production enforces pop origin only when POP_ORIGIN_ENFORCE=1', async () => {
     process.env.NODE_ENV = 'production';
     process.env.POP_POST_ORIGINS = 'https://prompttu.vercel.app';
+    process.env.POP_ORIGIN_ENFORCE = '1';
     unloadApp();
     const app = loadApp();
     const res = await request(app)
@@ -101,6 +103,24 @@ describe('API', () => {
       .set('Origin', 'https://evil.example')
       .send({ faculty_id: 'law', delta: 1 });
     assert.equal(res.status, 403);
+  });
+
+  test('production soft-allows pop when origin mismatches and enforce is off', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.POP_POST_ORIGINS = 'https://prompttu.vercel.app';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    process.env.TRUST_PROXY = '1';
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('Origin', 'https://evil.example')
+      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .send({ faculty_id: 'law', delta: 1 });
+    assert.equal(res.status, 500);
+    assert.equal(res.headers['x-pop-origin-result'], 'failed-soft');
   });
 
   test('429 response includes Retry-After header', async () => {

@@ -60,6 +60,10 @@ function isAllowedPopOrigin(req) {
   }
 }
 
+function isPopOriginEnforced() {
+  return (process.env.POP_ORIGIN_ENFORCE || '').trim() === '1';
+}
+
 // Routes
 app.get('/api', (req, res) => {
   res.json({ 
@@ -76,6 +80,7 @@ app.get('/api/health', async (req, res) => {
       supabase_configured: !!supabase,
       turnstile_enabled: isTurnstileEnabled(),
       turnstile_mode: isTurnstileEnabled() ? getTurnstileMode() : 'off',
+      pop_origin_enforce: isPopOriginEnforced(),
       message: 'Supabase integration ready.' 
     });
   } catch (error) {
@@ -253,7 +258,12 @@ app.post('/api/ranking/pop', async (req, res) => {
       return res.status(400).json({ status: 'error', message: `delta exceeds ${POP_MAX_DELTA_PER_CALL}` });
     }
     if (!isAllowedPopOrigin(req)) {
-      return res.status(403).json({ status: 'error', message: 'forbidden origin' });
+      if (isPopOriginEnforced()) {
+        return res.status(403).json({ status: 'error', message: 'forbidden origin' });
+      }
+      res.set('X-Pop-Origin-Result', 'failed-soft');
+    } else {
+      res.set('X-Pop-Origin-Result', 'passed');
     }
 
     // Per-IP rate limit (req.ip respects trust proxy when VERCEL / TRUST_PROXY is set)
