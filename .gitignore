@@ -1,6 +1,11 @@
 node_modules/
 .env
 .env.*
+!.env.example
+!**/.env.example
+!**/.env.*.example
+scripts/.env.setup
 .DS_Store
 dist/
 build/
+.vercel
