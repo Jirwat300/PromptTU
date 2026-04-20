@@ -40,6 +40,7 @@ import { createTurnstileToken } from './turnstileClient.js'
 
 const PERSISTED_FACULTY_IDS = FACULTIES.map((f) => f.id)
 const PERSISTED_INIT = loadPoptuUserState(PERSISTED_FACULTY_IDS)
+const POP_MAX_DELTA_PER_CALL = 50
 
 export default function PopTu({ onNavigateToComingSoon }) {
   const [facultyId, setFacultyId] = useState(PERSISTED_INIT.facultyId)
@@ -278,12 +279,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const flushPending = useCallback(async () => {
     if (flushInFlightRef.current) return
     if (!facultyId) return
-    const delta = pendingDeltaRef.current
-    if (delta <= 0) return
+    const queuedDelta = pendingDeltaRef.current
+    if (queuedDelta <= 0) return
+    const delta = Math.min(queuedDelta, POP_MAX_DELTA_PER_CALL)
+    const carryDelta = Math.max(0, queuedDelta - delta)
     const firstClickMs = pendingFirstClickMsRef.current || 0
     const lastClickMs = pendingLastClickMsRef.current || 0
     flushInFlightRef.current = true
-    pendingDeltaRef.current = 0
+    pendingDeltaRef.current = carryDelta
     pendingFirstClickMsRef.current = 0
     pendingLastClickMsRef.current = 0
 

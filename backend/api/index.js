@@ -108,9 +108,9 @@ function isAllowedAnalyticsOrigin(req) {
 }
 
 function getClientRateMode() {
-  const raw = (process.env.POP_CLIENT_RATE_MODE || 'enforce').trim().toLowerCase();
+  const raw = (process.env.POP_CLIENT_RATE_MODE || 'monitor').trim().toLowerCase();
   if (raw === 'off' || raw === 'monitor' || raw === 'enforce') return raw;
-  return 'enforce';
+  return 'monitor';
 }
 
 function getClientCpsMax() {

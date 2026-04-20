@@ -3,7 +3,7 @@ import FACULTIES from '@poptu-faculties'
 export { FACULTIES }
 
 export const MAX_CLICK_BUFFER = 20
-export const CPS_CAP = 25
+export const CPS_CAP = 35
 export const JITTER_MIN = 0.08
 
 export const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || ''
