@@ -23,6 +23,7 @@ describe('API', () => {
     delete process.env.NODE_ENV;
     delete process.env.VERCEL;
     delete process.env.CORS_ORIGINS;
+    delete process.env.CORS_ENFORCE;
     delete process.env.TRUST_PROXY;
     delete process.env.POP_POST_ORIGINS;
     delete process.env.POP_ORIGIN_ENFORCE;
@@ -72,10 +73,23 @@ describe('API', () => {
     assert.equal(res.status, 401);
   });
 
-  test('production without CORS_ORIGINS does not allow cross-origin', async () => {
+  test('production without CORS_ORIGINS remains permissive by default', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.CORS_ORIGINS;
     delete process.env.VERCEL;
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .get('/api')
+      .set('Origin', 'https://evil.example');
+    assert.equal(res.status, 200);
+    assert.equal(res.headers['access-control-allow-origin'], '*');
+  });
+
+  test('production CORS blocks cross-origin when CORS_ENFORCE=1', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.CORS_ENFORCE = '1';
+    delete process.env.CORS_ORIGINS;
     unloadApp();
     const app = loadApp();
     const res = await request(app)

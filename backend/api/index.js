@@ -23,7 +23,7 @@ const trustProxy =
 app.set('trust proxy', trustProxy ? 1 : false);
 
 // Middleware — set CORS_ORIGINS (comma-separated) for cross-origin browser callers.
-// When NODE_ENV=production or VERCEL=1, empty CORS_ORIGINS disables cross-origin (same-origin still works).
+// To avoid accidental production lockouts, CORS is permissive by default unless CORS_ENFORCE=1.
 // Local `vercel dev` often sets VERCEL: if the UI is on another port, set CORS_ORIGINS (e.g. http://localhost:5173).
 const isProdLike =
   process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
@@ -31,10 +31,11 @@ const corsOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+const corsEnforce = (process.env.CORS_ENFORCE || '').trim() === '1';
 const corsMiddleware =
   corsOrigins.length > 0
     ? cors({ origin: corsOrigins })
-    : isProdLike
+    : (isProdLike && corsEnforce)
       ? cors({ origin: false })
       : cors();
 app.use(corsMiddleware);
@@ -80,6 +81,7 @@ app.get('/api/health', async (req, res) => {
       supabase_configured: !!supabase,
       turnstile_enabled: isTurnstileEnabled(),
       turnstile_mode: isTurnstileEnabled() ? getTurnstileMode() : 'off',
+      cors_enforce: corsEnforce,
       pop_origin_enforce: isPopOriginEnforced(),
       message: 'Supabase integration ready.' 
     });
