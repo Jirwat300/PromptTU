@@ -20,10 +20,10 @@ function resolveTurnstileSiteKey() {
 }
 export const TURNSTILE_SITE_KEY = resolveTurnstileSiteKey()
 export const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.webp`
-export const RANKING_REFRESH_MS = 3000
-export const RANKING_REFRESH_HIDDEN_MS = 10000
+export const RANKING_REFRESH_MS = 2000
+export const RANKING_REFRESH_HIDDEN_MS = 8000
 export const ALL_FACULTIES_POLL_MS = 2000
-export const POP_FLUSH_MS = 5000
+export const POP_FLUSH_MS = 1500
 export const MAX_FLOATERS = 12
 
 export const WIN_DECO_BTN = { disabled: true, title: 'ตกแต่ง (ยังไม่ใช้งาน)' }

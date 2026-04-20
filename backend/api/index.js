@@ -26,7 +26,7 @@ const {
 
 const POPTU_FACULTIES = require(path.join(__dirname, '../data/poptu-faculties.json'));
 const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
-const SCORES_FLUSH_INTERVAL_MS = 5000;
+const SCORES_FLUSH_INTERVAL_MS = 1000;
 const SCORES_CACHE_TTL_MS = 1500;
 let lastScoresFlushAttemptMs = 0;
 let scoresCache = { at: 0, payload: null };
