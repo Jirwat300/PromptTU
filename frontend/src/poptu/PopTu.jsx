@@ -55,6 +55,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
   const lizardPopAnchorRef = useRef(null)
+  const popAudioCtxRef = useRef(null)
+  const popAudioGainRef = useRef(null)
 
   useLayoutEffect(() => {
     if (popAnim === 0) return
@@ -81,6 +83,53 @@ export default function PopTu({ onNavigateToComingSoon }) {
     document.body.classList.add('poptu-active')
     return () => document.body.classList.remove('poptu-active')
   }, [])
+
+  const ensurePopAudio = useCallback(() => {
+    if (typeof window === 'undefined') return null
+    const AC = window.AudioContext || window.webkitAudioContext
+    if (!AC) return null
+    if (!popAudioCtxRef.current) {
+      const ctx = new AC()
+      const master = ctx.createGain()
+      master.gain.value = 0.35
+      master.connect(ctx.destination)
+      popAudioCtxRef.current = ctx
+      popAudioGainRef.current = master
+    }
+    const ctx = popAudioCtxRef.current
+    if (ctx?.state === 'suspended') {
+      void ctx.resume().catch(() => {})
+    }
+    return ctx
+  }, [])
+
+  const playPopSound = useCallback(() => {
+    const ctx = ensurePopAudio()
+    if (!ctx) return
+    const output = popAudioGainRef.current || ctx.destination
+    const osc = ctx.createOscillator()
+    const filter = ctx.createBiquadFilter()
+    const gain = ctx.createGain()
+    const now = ctx.currentTime
+
+    filter.type = 'highpass'
+    filter.frequency.setValueAtTime(140, now)
+
+    osc.type = 'square'
+    osc.frequency.setValueAtTime(540, now)
+    osc.frequency.exponentialRampToValueAtTime(210, now + 0.06)
+
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.006)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08)
+
+    osc.connect(filter)
+    filter.connect(gain)
+    gain.connect(output)
+
+    osc.start(now)
+    osc.stop(now + 0.085)
+  }, [ensurePopAudio])
 
   useEffect(() => {
     sendPoptuPageView()
@@ -327,6 +376,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
     setPoseSrc((cur) => pickRandomPose(cur, lizardPosesRef.current))
     setPopAnim((n) => n + 1)
+    playPopSound()
 
     setSessionClicks((n) => n + 1)
     setScores((prev) => ({ ...prev, [facultyId]: (prev[facultyId] ?? 0) + 1 }))
@@ -339,7 +389,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
       return next.length > MAX_FLOATERS ? next.slice(-MAX_FLOATERS) : next
     })
     setTimeout(() => setFloaters((fs) => fs.filter((f) => f.id !== fid)), 700)
-  }, [caught, errOpen, readyOpen, facultyId, detectCheating, scheduleFlush])
+  }, [caught, errOpen, readyOpen, facultyId, detectCheating, playPopSound, scheduleFlush])
 
   const closeError = useCallback(() => {
     setErrOpen(false)
