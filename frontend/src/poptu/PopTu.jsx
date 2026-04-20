@@ -70,8 +70,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const clickTimes = useRef([])
   const floaterIdRef = useRef(0)
   const pendingDeltaRef = useRef(0)
+  const pendingFirstClickMsRef = useRef(0)
+  const pendingLastClickMsRef = useRef(0)
   const flushTimerRef = useRef(null)
   const flushInFlightRef = useRef(false)
+  const sessionTokenRef = useRef(null)
+  const sessionTokenExpRef = useRef(0)
+  const sessionStateRef = useRef('unknown') // unknown | enabled | disabled
+  const sessionReqRef = useRef(null)
   const optimisticRef = useRef({})
   const scoresFetchGenRef = useRef(0)
   const facultyIdRef = useRef(null)
@@ -134,6 +140,53 @@ export default function PopTu({ onNavigateToComingSoon }) {
   useEffect(() => {
     sendPoptuPageView()
   }, [])
+
+  const fetchSessionToken = useCallback(async () => {
+    if (sessionStateRef.current === 'disabled') return null
+    if (sessionReqRef.current) return sessionReqRef.current
+    sessionReqRef.current = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/ranking/session`, { cache: 'no-store' })
+        if (!res.ok) return null
+        const json = await res.json().catch(() => null)
+        if (!json || json.enabled === false) {
+          sessionStateRef.current = 'disabled'
+          sessionTokenRef.current = null
+          sessionTokenExpRef.current = 0
+          return null
+        }
+        const token = typeof json.token === 'string' ? json.token : ''
+        const expMs = Number(json.expires_at) || 0
+        if (!token) return null
+        sessionStateRef.current = 'enabled'
+        sessionTokenRef.current = token
+        sessionTokenExpRef.current = expMs
+        return token
+      } catch {
+        return null
+      } finally {
+        sessionReqRef.current = null
+      }
+    })()
+    return sessionReqRef.current
+  }, [])
+
+  const ensureSessionToken = useCallback(async () => {
+    if (sessionStateRef.current === 'disabled') return null
+    const now = Date.now()
+    if (
+      typeof sessionTokenRef.current === 'string' &&
+      sessionTokenRef.current &&
+      sessionTokenExpRef.current - now > 8000
+    ) {
+      return sessionTokenRef.current
+    }
+    return fetchSessionToken()
+  }, [fetchSessionToken])
+
+  useEffect(() => {
+    void ensureSessionToken()
+  }, [ensureSessionToken])
 
   useEffect(() => {
     let cancelled = false
@@ -227,8 +280,12 @@ export default function PopTu({ onNavigateToComingSoon }) {
     if (!facultyId) return
     const delta = pendingDeltaRef.current
     if (delta <= 0) return
+    const firstClickMs = pendingFirstClickMsRef.current || 0
+    const lastClickMs = pendingLastClickMsRef.current || 0
     flushInFlightRef.current = true
     pendingDeltaRef.current = 0
+    pendingFirstClickMsRef.current = 0
+    pendingLastClickMsRef.current = 0
 
     optimisticRef.current[facultyId] = (optimisticRef.current[facultyId] ?? 0) + delta
 
@@ -236,12 +293,16 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const turnstileToken = TURNSTILE_SITE_KEY
         ? await createTurnstileToken(TURNSTILE_SITE_KEY)
         : null
+      const sessionToken = await ensureSessionToken()
       const res = await fetch(`${API_BASE}/api/ranking/pop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           faculty_id: facultyId,
           delta,
+          client_first_click_ms: firstClickMs || undefined,
+          client_last_click_ms: lastClickMs || undefined,
+          session_token: sessionToken || undefined,
           turnstile_token: turnstileToken || undefined,
         }),
       })
@@ -265,11 +326,18 @@ export default function PopTu({ onNavigateToComingSoon }) {
           }))
         })
       } else {
+        if (res.status === 403 && String(json?.message || '').includes('session')) {
+          sessionTokenRef.current = null
+          sessionTokenExpRef.current = 0
+          void fetchSessionToken()
+        }
         optimisticRef.current[facultyId] = Math.max(
           (optimisticRef.current[facultyId] ?? 0) - delta,
           0,
         )
         pendingDeltaRef.current += delta
+        if (!pendingFirstClickMsRef.current && firstClickMs) pendingFirstClickMsRef.current = firstClickMs
+        if (lastClickMs) pendingLastClickMsRef.current = Math.max(pendingLastClickMsRef.current, lastClickMs)
       }
     } catch {
       optimisticRef.current[facultyId] = Math.max(
@@ -277,6 +345,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
         0,
       )
       pendingDeltaRef.current += delta
+      if (!pendingFirstClickMsRef.current && firstClickMs) pendingFirstClickMsRef.current = firstClickMs
+      if (lastClickMs) pendingLastClickMsRef.current = Math.max(pendingLastClickMsRef.current, lastClickMs)
     } finally {
       flushInFlightRef.current = false
       if (pendingDeltaRef.current > 0 && !flushTimerRef.current) {
@@ -286,7 +356,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
         }, POP_FLUSH_MS)
       }
     }
-  }, [facultyId])
+  }, [ensureSessionToken, facultyId, fetchSessionToken])
 
   const scheduleFlush = useCallback(() => {
     if (flushTimerRef.current) return
@@ -302,9 +372,17 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const delta = pendingDeltaRef.current
       if (!fid || delta <= 0) return
       pendingDeltaRef.current = 0
+      pendingFirstClickMsRef.current = 0
+      pendingLastClickMsRef.current = 0
       optimisticRef.current[fid] = (optimisticRef.current[fid] ?? 0) + delta
       const url = `${API_BASE}/api/ranking/pop`
-      const body = JSON.stringify({ faculty_id: fid, delta })
+      const body = JSON.stringify({
+        faculty_id: fid,
+        delta,
+        client_first_click_ms: pendingFirstClickMsRef.current || undefined,
+        client_last_click_ms: pendingLastClickMsRef.current || undefined,
+        session_token: sessionTokenRef.current || undefined,
+      })
       try {
         if (
           typeof navigator !== 'undefined' &&
@@ -380,6 +458,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
     setSessionClicks((n) => n + 1)
     setScores((prev) => ({ ...prev, [facultyId]: (prev[facultyId] ?? 0) + 1 }))
+    if (!pendingFirstClickMsRef.current) pendingFirstClickMsRef.current = now
+    pendingLastClickMsRef.current = now
     pendingDeltaRef.current += 1
     scheduleFlush()
 

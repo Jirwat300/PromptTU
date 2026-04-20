@@ -27,10 +27,14 @@ describe('API', () => {
     delete process.env.TRUST_PROXY;
     delete process.env.POP_POST_ORIGINS;
     delete process.env.POP_ORIGIN_ENFORCE;
+    delete process.env.POP_CLIENT_RATE_MODE;
+    delete process.env.POP_CLIENT_CPS_MAX;
     delete process.env.TURNSTILE_SECRET_KEY;
     delete process.env.TURNSTILE_VERIFY_URL;
     delete process.env.TURNSTILE_MODE;
     delete process.env.TURNXSTILE_MODE;
+    delete process.env.POP_SESSION_SECRET;
+    delete process.env.POP_SESSION_MODE;
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_ANON_KEY;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -71,6 +75,13 @@ describe('API', () => {
     const app = loadApp();
     const res = await request(app).get('/api/admin/analytics');
     assert.equal(res.status, 401);
+  });
+
+  test('GET /api/ranking/session returns disabled when secret is unset', async () => {
+    const app = loadApp();
+    const res = await request(app).get('/api/ranking/session');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.enabled, false);
   });
 
   test('production without CORS_ORIGINS remains permissive by default', async () => {
@@ -135,6 +146,49 @@ describe('API', () => {
       .send({ faculty_id: 'law', delta: 1 });
     assert.equal(res.status, 500);
     assert.equal(res.headers['x-pop-origin-result'], 'failed-soft');
+  });
+
+  test('client click timestamp check rejects impossible speed in enforce mode', async () => {
+    process.env.POP_CLIENT_RATE_MODE = 'enforce';
+    process.env.POP_CLIENT_CPS_MAX = '20';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .send({
+        faculty_id: 'law',
+        delta: 10,
+        client_first_click_ms: Date.now() - 30,
+        client_last_click_ms: Date.now(),
+      });
+    assert.equal(res.status, 429);
+    assert.equal(res.body.message, 'too fast');
+  });
+
+  test('client click timestamp check is monitor by default', async () => {
+    process.env.POP_CLIENT_CPS_MAX = '20';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .send({
+        faculty_id: 'law',
+        delta: 10,
+        client_first_click_ms: Date.now() - 30,
+        client_last_click_ms: Date.now(),
+      });
+    assert.equal(res.status, 500);
+    assert.ok(String(res.headers['x-client-rate-result'] || '').startsWith('failed:too-fast'));
   });
 
   test('429 response includes Retry-After header', async () => {
@@ -243,6 +297,44 @@ describe('API', () => {
       .send({ faculty_id: 'law', delta: 1 });
     assert.equal(res.status, 500);
     assert.equal(res.headers['x-turnstile-result'], 'missing');
+  });
+
+  test('session token enforce mode rejects pop without token', async () => {
+    process.env.POP_SESSION_SECRET = 'session-secret';
+    process.env.POP_SESSION_MODE = 'enforce';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .send({ faculty_id: 'law', delta: 1 });
+    assert.equal(res.status, 403);
+    assert.equal(res.body.message, 'invalid session token');
+  });
+
+  test('session token enforce mode accepts valid token', async () => {
+    process.env.POP_SESSION_SECRET = 'session-secret';
+    process.env.POP_SESSION_MODE = 'enforce';
+    process.env.TRUST_PROXY = '1';
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+
+    const issued = await request(app).get('/api/ranking/session');
+    assert.equal(issued.status, 200);
+    assert.equal(issued.body.enabled, true);
+    assert.ok(typeof issued.body.token === 'string' && issued.body.token.length > 0);
+
+    const res = await request(app)
+      .post('/api/ranking/pop')
+      .set('X-Forwarded-For', `198.51.100.${Math.floor(Math.random() * 200) + 1}`)
+      .send({ faculty_id: 'law', delta: 1, session_token: issued.body.token });
+    assert.equal(res.status, 500);
+    assert.equal(res.headers['x-session-token-result'], 'passed');
   });
 
   test('health accepts near-miss turnstile mode env names', async () => {

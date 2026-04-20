@@ -11,6 +11,12 @@ const {
   getTurnstileMode,
   verifyTurnstileToken,
 } = require('../src/turnstileVerify');
+const {
+  isSessionTokenEnabled,
+  getSessionTokenMode,
+  issueSessionToken,
+  verifySessionToken,
+} = require('../src/sessionToken');
 
 const POPTU_FACULTIES = require(path.join(__dirname, '../data/poptu-faculties.json'));
 const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
@@ -65,6 +71,47 @@ function isPopOriginEnforced() {
   return (process.env.POP_ORIGIN_ENFORCE || '').trim() === '1';
 }
 
+function getClientRateMode() {
+  const raw = (process.env.POP_CLIENT_RATE_MODE || 'monitor').trim().toLowerCase();
+  if (raw === 'off' || raw === 'monitor' || raw === 'enforce') return raw;
+  return 'monitor';
+}
+
+function getClientCpsMax() {
+  const raw = Number(process.env.POP_CLIENT_CPS_MAX || 30);
+  if (!Number.isFinite(raw)) return 30;
+  return Math.min(80, Math.max(5, raw));
+}
+
+/**
+ * Validate client click timing stats from the batch payload.
+ * Returns null when payload is missing/insufficient, or a verdict when available.
+ * @param {{delta:number, firstMs?:unknown, lastMs?:unknown}} input
+ * @returns {{ok:boolean, code?:string, cps?:number} | null}
+ */
+function validateClientClickRate(input) {
+  const mode = getClientRateMode();
+  if (mode === 'off') return null;
+  const first = Number(input.firstMs);
+  const last = Number(input.lastMs);
+  const count = Number(input.delta);
+  if (!Number.isFinite(first) || !Number.isFinite(last) || !Number.isFinite(count) || count < 2) {
+    return null;
+  }
+  if (last < first) return { ok: false, code: 'bad-window' };
+
+  const now = Date.now();
+  const skewMs = 5 * 60 * 1000;
+  if (Math.abs(now - last) > skewMs) return { ok: false, code: 'clock-skew' };
+
+  const durationMs = Math.max(1, last - first);
+  const cps = (count * 1000) / durationMs;
+  if (cps > getClientCpsMax()) {
+    return { ok: false, code: 'too-fast', cps };
+  }
+  return { ok: true, cps };
+}
+
 // Routes
 app.get('/api', (req, res) => {
   res.json({ 
@@ -81,6 +128,10 @@ app.get('/api/health', async (req, res) => {
       supabase_configured: !!supabase,
       turnstile_enabled: isTurnstileEnabled(),
       turnstile_mode: isTurnstileEnabled() ? getTurnstileMode() : 'off',
+      session_token_enabled: isSessionTokenEnabled(),
+      session_token_mode: isSessionTokenEnabled() ? getSessionTokenMode() : 'off',
+      client_rate_mode: getClientRateMode(),
+      client_cps_max: getClientCpsMax(),
       cors_enforce: corsEnforce,
       pop_origin_enforce: isPopOriginEnforced(),
       message: 'Supabase integration ready.' 
@@ -245,6 +296,29 @@ app.get('/api/ranking/scores', async (req, res) => {
   }
 });
 
+app.get('/api/ranking/session', async (req, res) => {
+  try {
+    if (!isSessionTokenEnabled()) {
+      return res.json({ status: 'success', enabled: false });
+    }
+    const issued = issueSessionToken();
+    if (!issued?.token) {
+      return res.status(500).json({ status: 'error', message: 'failed to issue session token' });
+    }
+    res.set('Cache-Control', 'no-store');
+    return res.json({
+      status: 'success',
+      enabled: true,
+      token: issued.token,
+      expires_at: issued.expiresAt,
+      ttl_sec: issued.ttlSec,
+    });
+  } catch (err) {
+    console.error('[ranking] session error:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+});
+
 app.post('/api/ranking/pop', async (req, res) => {
   try {
     const { faculty_id, delta } = req.body || {};
@@ -259,6 +333,23 @@ app.post('/api/ranking/pop', async (req, res) => {
     if (d > POP_MAX_DELTA_PER_CALL) {
       return res.status(400).json({ status: 'error', message: `delta exceeds ${POP_MAX_DELTA_PER_CALL}` });
     }
+
+    const clientRate = validateClientClickRate({
+      delta: d,
+      firstMs: req.body?.client_first_click_ms,
+      lastMs: req.body?.client_last_click_ms,
+    });
+    if (clientRate && !clientRate.ok) {
+      res.set('X-Client-Rate-Result', `failed:${clientRate.code || 'unknown'}`);
+      if (getClientRateMode() === 'enforce') {
+        return res.status(429).json({ status: 'error', message: 'too fast' });
+      }
+    } else if (clientRate && clientRate.ok) {
+      res.set('X-Client-Rate-Result', 'passed');
+    } else {
+      res.set('X-Client-Rate-Result', 'unavailable');
+    }
+
     if (!isAllowedPopOrigin(req)) {
       if (isPopOriginEnforced()) {
         return res.status(403).json({ status: 'error', message: 'forbidden origin' });
@@ -270,6 +361,21 @@ app.post('/api/ranking/pop', async (req, res) => {
 
     // Per-IP rate limit (req.ip respects trust proxy when VERCEL / TRUST_PROXY is set)
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    if (isSessionTokenEnabled()) {
+      const mode = getSessionTokenMode();
+      const sessionToken =
+        typeof req.body?.session_token === 'string' ? req.body.session_token.trim() : '';
+      const verdict = verifySessionToken(sessionToken);
+      if (!verdict.ok) {
+        if (mode === 'enforce') {
+          return res.status(403).json({ status: 'error', message: 'invalid session token' });
+        }
+        res.set('X-Session-Token-Result', `failed:${verdict.code || 'unknown'}`);
+      } else {
+        res.set('X-Session-Token-Result', 'passed');
+      }
+    }
+
     if (isTurnstileEnabled()) {
       // TURNSTILE_MODE=monitor (default): accept request, annotate result in X-Turnstile-Result.
       // TURNSTILE_MODE=enforce: reject missing/failed token (except verify transport outage).
