@@ -318,6 +318,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
           0,
         )
         if (ack < delta) pendingDeltaRef.current += delta - ack
+        // Pull fresh shared ranking immediately after a successful flush.
+        void fetchScores()
 
         if (Number.isFinite(serverCount)) {
           startTransition(() => {
@@ -364,7 +366,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
         }, POP_FLUSH_MS)
       }
     }
-  }, [ensureSessionToken, facultyId, fetchSessionToken])
+  }, [ensureSessionToken, facultyId, fetchScores, fetchSessionToken])
 
   const scheduleFlush = useCallback(() => {
     if (flushTimerRef.current) return
