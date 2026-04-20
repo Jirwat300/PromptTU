@@ -32,6 +32,7 @@ let lastScoresFlushAttemptMs = 0;
 let scoresCache = { at: 0, payload: null };
 
 const app = express();
+app.disable('x-powered-by');
 
 // Behind Vercel (or when TRUST_PROXY=1): use Express-resolved client IP for rate limits.
 const trustProxy =
@@ -47,7 +48,7 @@ const corsOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
-const corsEnforce = (process.env.CORS_ENFORCE || '').trim() === '1';
+const corsEnforce = (process.env.CORS_ENFORCE || (isProdLike ? '1' : '')).trim() === '1';
 const corsMiddleware =
   corsOrigins.length > 0
     ? cors({ origin: corsOrigins })
@@ -55,7 +56,14 @@ const corsMiddleware =
       ? cors({ origin: false })
       : cors();
 app.use(corsMiddleware);
-app.use(express.json());
+app.use(express.json({ limit: '16kb' }));
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
 
 const popPostOrigins = (
   process.env.POP_POST_ORIGINS || process.env.CORS_ORIGINS || ''
@@ -81,6 +89,24 @@ function isPopOriginEnforced() {
   return (process.env.POP_ORIGIN_ENFORCE || '').trim() === '1';
 }
 
+function isAnalyticsOriginEnforced() {
+  const raw = (process.env.ANALYTICS_ORIGIN_ENFORCE || (isProdLike ? '1' : '')).trim();
+  return raw === '1';
+}
+
+function isAllowedAnalyticsOrigin(req) {
+  if (!isProdLike || popPostOrigins.length === 0) return true;
+  const origin = (req.get('origin') || '').trim();
+  if (origin && popPostOrigins.includes(origin)) return true;
+  const referer = (req.get('referer') || '').trim();
+  if (!referer) return false;
+  try {
+    return popPostOrigins.includes(new URL(referer).origin);
+  } catch {
+    return false;
+  }
+}
+
 function getClientRateMode() {
   const raw = (process.env.POP_CLIENT_RATE_MODE || 'enforce').trim().toLowerCase();
   if (raw === 'off' || raw === 'monitor' || raw === 'enforce') return raw;
@@ -88,9 +114,56 @@ function getClientRateMode() {
 }
 
 function getClientCpsMax() {
-  const raw = Number(process.env.POP_CLIENT_CPS_MAX || 25);
-  if (!Number.isFinite(raw)) return 25;
-  return Math.min(80, Math.max(5, raw));
+  const raw = Number(process.env.POP_CLIENT_CPS_MAX || 30);
+  if (!Number.isFinite(raw)) return 30;
+  return Math.min(80, Math.max(8, raw));
+}
+
+function getClientRateMinSamples() {
+  const raw = Number(process.env.POP_CLIENT_RATE_MIN_SAMPLES || 6);
+  if (!Number.isFinite(raw)) return 6;
+  return Math.min(20, Math.max(2, Math.floor(raw)));
+}
+
+const ANALYTICS_EVENT_TYPE_RE = /^[a-z0-9][a-z0-9_.:-]{0,63}$/i;
+const ANALYTICS_RATE_WINDOW_MS = 60 * 1000;
+const ANALYTICS_RATE_MAX = 60;
+const analyticsIpBuckets = new Map();
+
+function clampText(v, maxLen) {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  if (!s) return null;
+  return s.slice(0, maxLen);
+}
+
+function normalizeMetadata(v) {
+  if (v == null) return null;
+  if (typeof v !== 'object') return null;
+  try {
+    const raw = JSON.stringify(v);
+    if (!raw || raw.length > 2000) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function isAnalyticsRateLimited(ip) {
+  const now = Date.now();
+  const prev = analyticsIpBuckets.get(ip);
+  if (!prev || now - prev.startedAt >= ANALYTICS_RATE_WINDOW_MS) {
+    analyticsIpBuckets.set(ip, { startedAt: now, count: 1 });
+    return false;
+  }
+  prev.count += 1;
+  if (prev.count > ANALYTICS_RATE_MAX) return true;
+  if (analyticsIpBuckets.size > 5000) {
+    for (const [k, bucket] of analyticsIpBuckets.entries()) {
+      if (now - bucket.startedAt >= ANALYTICS_RATE_WINDOW_MS) analyticsIpBuckets.delete(k);
+    }
+  }
+  return false;
 }
 
 function shouldAllowInternalFlush(req) {
@@ -117,7 +190,8 @@ function validateClientClickRate(input) {
   const first = Number(input.firstMs);
   const last = Number(input.lastMs);
   const count = Number(input.delta);
-  if (!Number.isFinite(first) || !Number.isFinite(last) || !Number.isFinite(count) || count < 2) {
+  const minSamples = getClientRateMinSamples();
+  if (!Number.isFinite(first) || !Number.isFinite(last) || !Number.isFinite(count) || count < minSamples) {
     return null;
   }
   if (last < first) return { ok: false, code: 'bad-window' };
@@ -128,7 +202,8 @@ function validateClientClickRate(input) {
 
   const durationMs = Math.max(1, last - first);
   const cps = (count * 1000) / durationMs;
-  if (cps > getClientCpsMax()) {
+  const capWithGrace = getClientCpsMax() * 1.15;
+  if (cps > capWithGrace) {
     return { ok: false, code: 'too-fast', cps };
   }
   return { ok: true, cps };
@@ -166,10 +241,35 @@ app.get('/api/health', async (req, res) => {
 
 app.post('/api/analytics', async (req, res) => {
   try {
-    const { event_type, path, device, referrer, watchtower, metadata, user_id } = req.body;
+    if (!isAllowedAnalyticsOrigin(req)) {
+      if (isAnalyticsOriginEnforced()) {
+        return res.status(403).json({ status: 'error', message: 'forbidden origin' });
+      }
+      res.set('X-Analytics-Origin-Result', 'failed-soft');
+    } else {
+      res.set('X-Analytics-Origin-Result', 'passed');
+    }
+
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    if (isAnalyticsRateLimited(ip)) {
+      res.set('Retry-After', '60');
+      return res.status(429).json({ status: 'error', message: 'too many analytics requests' });
+    }
+
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const event_type = clampText(body.event_type, 64);
+    const path = clampText(body.path, 300);
+    const device = clampText(body.device, 256);
+    const referrer = clampText(body.referrer, 300);
+    const watchtower = clampText(body.watchtower, 120);
+    const user_id = clampText(body.user_id, 120);
+    const metadata = normalizeMetadata(body.metadata);
 
     if (!event_type) {
       return res.status(400).json({ status: 'error', message: 'event_type is required' });
+    }
+    if (!ANALYTICS_EVENT_TYPE_RE.test(event_type)) {
+      return res.status(400).json({ status: 'error', message: 'invalid event_type' });
     }
 
     if (!supabase) {
@@ -184,7 +284,7 @@ app.post('/api/analytics', async (req, res) => {
         device: device || null,
         referrer: referrer || null,
         watchtower: watchtower || null,
-        metadata: metadata || null,
+        metadata,
         user_id: user_id || null
       }])
       .select();

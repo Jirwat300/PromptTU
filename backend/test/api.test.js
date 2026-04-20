@@ -31,6 +31,7 @@ describe('API', () => {
     delete process.env.POP_CLIENT_CPS_MAX;
     delete process.env.POP_WRITE_BEHIND;
     delete process.env.POP_FLUSH_INTERNAL_KEY;
+    delete process.env.ANALYTICS_ORIGIN_ENFORCE;
     delete process.env.TURNSTILE_SECRET_KEY;
     delete process.env.TURNSTILE_VERIFY_URL;
     delete process.env.TURNSTILE_MODE;
@@ -75,6 +76,35 @@ describe('API', () => {
     assert.equal(res.status, 400);
   });
 
+  test('POST /api/analytics rejects malformed event_type', async () => {
+    const app = loadApp();
+    const res = await request(app)
+      .post('/api/analytics')
+      .send({ event_type: 'bad event type' });
+    assert.equal(res.status, 400);
+  });
+
+  test('POST /api/analytics rate limits repeated requests by IP', async () => {
+    process.env.SUPABASE_URL = '';
+    process.env.SUPABASE_ANON_KEY = '';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+    unloadApp();
+    const app = loadApp();
+    let last = null;
+    for (let i = 0; i < 80; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const res = await request(app)
+        .post('/api/analytics')
+        .set('X-Forwarded-For', '198.51.100.77')
+        .send({ event_type: `ping_${i}` });
+      last = res;
+      if (res.status === 429) break;
+    }
+    assert.ok(last);
+    assert.equal(last.status, 429);
+    assert.ok(Number(last.headers['retry-after']) >= 1);
+  });
+
   test('GET /api/admin/analytics without key returns 401', async () => {
     const app = loadApp();
     const res = await request(app).get('/api/admin/analytics');
@@ -103,7 +133,7 @@ describe('API', () => {
     assert.equal(res.body.enabled, false);
   });
 
-  test('production without CORS_ORIGINS remains permissive by default', async () => {
+  test('production without CORS_ORIGINS blocks cross-origin by default', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.CORS_ORIGINS;
     delete process.env.VERCEL;
@@ -113,7 +143,7 @@ describe('API', () => {
       .get('/api')
       .set('Origin', 'https://evil.example');
     assert.equal(res.status, 200);
-    assert.equal(res.headers['access-control-allow-origin'], '*');
+    assert.equal(res.headers['access-control-allow-origin'], undefined);
   });
 
   test('production CORS blocks cross-origin when CORS_ENFORCE=1', async () => {

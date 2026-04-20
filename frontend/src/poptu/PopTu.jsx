@@ -333,13 +333,19 @@ export default function PopTu({ onNavigateToComingSoon }) {
           sessionTokenExpRef.current = 0
           void fetchSessionToken()
         }
+        const isTooFastReject =
+          res.status === 429 && String(json?.message || '').toLowerCase().includes('too fast')
         optimisticRef.current[facultyId] = Math.max(
           (optimisticRef.current[facultyId] ?? 0) - delta,
           0,
         )
         pendingDeltaRef.current += delta
-        if (!pendingFirstClickMsRef.current && firstClickMs) pendingFirstClickMsRef.current = firstClickMs
-        if (lastClickMs) pendingLastClickMsRef.current = Math.max(pendingLastClickMsRef.current, lastClickMs)
+        // If server flagged this batch as "too fast", do not keep re-sending
+        // the same timing window forever; retry with delta only.
+        if (!isTooFastReject) {
+          if (!pendingFirstClickMsRef.current && firstClickMs) pendingFirstClickMsRef.current = firstClickMs
+          if (lastClickMs) pendingLastClickMsRef.current = Math.max(pendingLastClickMsRef.current, lastClickMs)
+        }
       }
     } catch {
       optimisticRef.current[facultyId] = Math.max(
