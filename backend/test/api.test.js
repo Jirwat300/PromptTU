@@ -133,7 +133,7 @@ describe('API', () => {
     assert.equal(res.body.enabled, false);
   });
 
-  test('production without CORS_ORIGINS blocks cross-origin by default', async () => {
+  test('production without CORS_ORIGINS remains permissive by default', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.CORS_ORIGINS;
     delete process.env.VERCEL;
@@ -143,7 +143,7 @@ describe('API', () => {
       .get('/api')
       .set('Origin', 'https://evil.example');
     assert.equal(res.status, 200);
-    assert.equal(res.headers['access-control-allow-origin'], undefined);
+    assert.equal(res.headers['access-control-allow-origin'], '*');
   });
 
   test('production CORS blocks cross-origin when CORS_ENFORCE=1', async () => {

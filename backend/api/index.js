@@ -48,7 +48,7 @@ const corsOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
-const corsEnforce = (process.env.CORS_ENFORCE || (isProdLike ? '1' : '')).trim() === '1';
+const corsEnforce = (process.env.CORS_ENFORCE || '').trim() === '1';
 const corsMiddleware =
   corsOrigins.length > 0
     ? cors({ origin: corsOrigins })
