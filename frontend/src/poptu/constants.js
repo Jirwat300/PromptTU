@@ -19,10 +19,13 @@ function resolveTurnstileSiteKey() {
 }
 export const TURNSTILE_SITE_KEY = resolveTurnstileSiteKey()
 export const STAGE_PT_LOGO = `${(import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/') }PTLOGO.webp`
-export const RANKING_REFRESH_MS = 2000
-export const RANKING_REFRESH_HIDDEN_MS = 8000
-export const ALL_FACULTIES_POLL_MS = 2000
-export const POP_FLUSH_MS = 1500
+// Polling / batching cadence is tuned to keep Upstash command usage inside the
+// free tier. Shared leaderboard refreshes on this interval; per-user POPs are
+// optimistically rendered client-side so users still feel responsive.
+export const RANKING_REFRESH_MS = 5000
+export const RANKING_REFRESH_HIDDEN_MS = 20_000
+export const ALL_FACULTIES_POLL_MS = 5000
+export const POP_FLUSH_MS = 3000
 export const MAX_FLOATERS = 12
 
 export const WIN_DECO_BTN = { disabled: true, title: 'ตกแต่ง (ยังไม่ใช้งาน)' }

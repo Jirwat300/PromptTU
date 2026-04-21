@@ -10,5 +10,11 @@
     "api/[...slug].js": {
       "includeFiles": "backend/**"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/internal/flush-pop",
+      "schedule": "*/2 * * * *"
+    }
+  ]
 }

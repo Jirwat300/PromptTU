@@ -32,9 +32,22 @@ const {
 
 const POPTU_FACULTIES = require(path.join(__dirname, '../data/poptu-faculties.json'));
 const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
-const SCORES_FLUSH_INTERVAL_MS = 1000;
-const SCORES_CACHE_TTL_MS = 1500;
+// Hot-path Redis frugality knobs. Values in ms.
+//   SCORES_CACHE_TTL_MS: how long Supabase scores stay cached in memory between
+//     polls. Longer = fewer DB + pending reads; users see shared ranking refresh
+//     on that cadence (optimistic updates still feel live for self-clicks).
+//   SCORES_FLUSH_INTERVAL_MS: minimum gap between opportunistic write-behind
+//     flushes kicked off from the /scores cache-miss path. Longer = smaller
+//     flush amortised over more POPs = fewer Redis commands.
+//   POP_FLUSH_HINT_MS: when any pop POST comes in and the last flush was more
+//     than this long ago, we fire a non-blocking flush so pending can't sit in
+//     Redis forever on low-traffic Vercel Hobby plans that can't run minute
+//     crons.
+const SCORES_CACHE_TTL_MS = 5000;
+const SCORES_FLUSH_INTERVAL_MS = 30_000;
+const POP_FLUSH_HINT_MS = 30_000;
 let lastScoresFlushAttemptMs = 0;
+let lastPopFlushHintMs = 0;
 let scoresCache = { at: 0, payload: null };
 
 const app = express();
@@ -235,6 +248,9 @@ app.get('/api/health', async (req, res) => {
       session_token_mode: isSessionTokenEnabled() ? getSessionTokenMode() : 'off',
       session_bind_ip: !(sessionBindIp === '0' || sessionBindIp === 'false' || sessionBindIp === 'off'),
       write_behind_enabled: isWriteBehindEnabled(),
+      scores_cache_ttl_ms: SCORES_CACHE_TTL_MS,
+      scores_flush_interval_ms: SCORES_FLUSH_INTERVAL_MS,
+      pop_flush_hint_ms: POP_FLUSH_HINT_MS,
       client_rate_mode: getClientRateMode(),
       client_cps_max: getClientCpsMax(),
       cors_enforce: corsEnforce,
@@ -643,6 +659,26 @@ app.post('/api/ranking/pop', async (req, res) => {
       const queued = await enqueuePop(faculty_id, budget.allowed);
       if (queued.queued) {
         invalidateScoresCache();
+        // Keep pending from sitting in Redis forever when nobody is polling
+        // /scores (which is what normally triggers flushes). Fire-and-forget so
+        // the caller still gets a sub-second response; the flush holds its own
+        // Redis lock so parallel invocations collapse safely.
+        const now = Date.now();
+        if (now - lastPopFlushHintMs >= POP_FLUSH_HINT_MS) {
+          lastPopFlushHintMs = now;
+          setImmediate(() => {
+            flushPendingToDb(supabase)
+              .then((summary) => {
+                if (summary?.flushed > 0) invalidateScoresCache();
+              })
+              .catch((err) => {
+                console.warn(
+                  '[ranking] background flush failed:',
+                  err && err.message ? err.message : err,
+                );
+              });
+          });
+        }
         return res.json({
           status: 'success',
           queued: true,
