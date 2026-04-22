@@ -144,6 +144,22 @@ function getClientRateMinSamples() {
   return Math.min(20, Math.max(2, Math.floor(raw)));
 }
 
+// Admin-controlled "freeze list": comma-separated faculty ids that should
+// reject any POST /api/ranking/pop. Use when a specific faculty is being
+// abused and you want to lock its score in place without taking the whole
+// leaderboard offline. Toggle via Vercel env (POP_FROZEN_FACULTIES=soc,eng)
+// then redeploy — no code change required.
+function getFrozenFaculties() {
+  const raw = (process.env.POP_FROZEN_FACULTIES || '').trim();
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
 const ANALYTICS_EVENT_TYPE_RE = /^[a-z0-9][a-z0-9_.:-]{0,63}$/i;
 const ANALYTICS_RATE_WINDOW_MS = 60 * 1000;
 const ANALYTICS_RATE_MAX = 60;
@@ -255,6 +271,7 @@ app.get('/api/health', async (req, res) => {
       client_cps_max: getClientCpsMax(),
       cors_enforce: corsEnforce,
       pop_origin_enforce: isPopOriginEnforced(),
+      frozen_faculties: [...getFrozenFaculties()],
       message: 'Supabase integration ready.'
     });
   } catch (error) {
@@ -564,6 +581,13 @@ app.post('/api/ranking/pop', async (req, res) => {
 
     if (!faculty_id || !POPTU_FACULTY_IDS.has(faculty_id)) {
       return res.status(400).json({ status: 'error', message: 'invalid faculty_id' });
+    }
+    // Reject frozen faculties before any DB / rate-limit work so a sustained
+    // abuse attempt costs us nothing and the client gets a clear signal.
+    const frozen = getFrozenFaculties();
+    if (frozen.has(String(faculty_id).toLowerCase())) {
+      res.set('X-Faculty-Frozen', '1');
+      return res.status(403).json({ status: 'error', message: 'faculty is frozen' });
     }
     if (!Number.isFinite(d) || d <= 0) {
       return res.status(400).json({ status: 'error', message: 'delta must be a positive integer' });
