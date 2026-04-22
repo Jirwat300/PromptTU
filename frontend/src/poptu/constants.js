@@ -28,4 +28,16 @@ export const ALL_FACULTIES_POLL_MS = 5000
 export const POP_FLUSH_MS = 3000
 export const MAX_FLOATERS = 12
 
+// Show a visible Turnstile CAPTCHA gate after this long has elapsed since
+// the first click in the session. Reset after each successful solve so a
+// sustained auto-clicker hits the gate again on the next cycle.
+// Tweak via VITE_POP_CAPTCHA_AFTER_MS if a specific event needs shorter/longer.
+function resolveCaptchaAfterMs() {
+  const raw = (import.meta.env && import.meta.env.VITE_POP_CAPTCHA_AFTER_MS) || ''
+  const n = Number(raw)
+  if (Number.isFinite(n) && n > 0) return Math.max(30_000, Math.floor(n))
+  return 7 * 60 * 1000
+}
+export const POP_CAPTCHA_AFTER_MS = resolveCaptchaAfterMs()
+
 export const WIN_DECO_BTN = { disabled: true, title: 'ตกแต่ง (ยังไม่ใช้งาน)' }

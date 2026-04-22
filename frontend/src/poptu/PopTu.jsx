@@ -19,6 +19,7 @@ import {
   FACULTIES,
   MAX_CLICK_BUFFER,
   MAX_FLOATERS,
+  POP_CAPTCHA_AFTER_MS,
   POP_FLUSH_MS,
   RANKING_REFRESH_HIDDEN_MS,
   RANKING_REFRESH_MS,
@@ -30,6 +31,7 @@ import Lizard from './Lizard.jsx'
 import { Lcd } from './Lcd.jsx'
 import { pickRandomPose } from './pickRandomPose.js'
 import AllFacultiesDialog from './modals/AllFacultiesDialog.jsx'
+import CaptchaGate from './modals/CaptchaGate.jsx'
 import ErrorDialog from './modals/ErrorDialog.jsx'
 import FacultyPicker from './modals/FacultyPicker.jsx'
 import ReadyDialog from './modals/ReadyDialog.jsx'
@@ -52,6 +54,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [errOpen, setErrOpen] = useState(false)
   const [readyOpen, setReadyOpen] = useState(false)
   const [allFacultiesOpen, setAllFacultiesOpen] = useState(false)
+  const [captchaOpen, setCaptchaOpen] = useState(false)
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
   const lizardPopAnchorRef = useRef(null)
@@ -68,6 +71,8 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [popAnim])
 
   const clickTimes = useRef([])
+  const firstPopAtRef = useRef(0)
+  const captchaDeadlineRef = useRef(0)
   const floaterIdRef = useRef(0)
   const pendingDeltaRef = useRef(0)
   const pendingFirstClickMsRef = useRef(0)
@@ -446,8 +451,22 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [])
 
   const onLizardClick = useCallback(() => {
-    if (caught || errOpen || readyOpen || !facultyId) return
+    if (caught || errOpen || readyOpen || captchaOpen || !facultyId) return
     const now = Date.now()
+
+    // Start / check the "prove you're human" timer. First click arms it; after
+    // POP_CAPTCHA_AFTER_MS we block further pops until the user solves the gate.
+    // No-op when Turnstile isn't configured — we never want to brick the game.
+    if (TURNSTILE_SITE_KEY) {
+      if (!firstPopAtRef.current) {
+        firstPopAtRef.current = now
+        captchaDeadlineRef.current = now + POP_CAPTCHA_AFTER_MS
+      } else if (captchaDeadlineRef.current && now >= captchaDeadlineRef.current) {
+        setCaptchaOpen(true)
+        return
+      }
+    }
+
     const buf = clickTimes.current
     buf.push(now)
     if (buf.length > MAX_CLICK_BUFFER) buf.shift()
@@ -480,7 +499,24 @@ export default function PopTu({ onNavigateToComingSoon }) {
       return next.length > MAX_FLOATERS ? next.slice(-MAX_FLOATERS) : next
     })
     setTimeout(() => setFloaters((fs) => fs.filter((f) => f.id !== fid)), 700)
-  }, [caught, errOpen, readyOpen, facultyId, detectCheating, playPopSound, scheduleFlush])
+  }, [caught, errOpen, readyOpen, captchaOpen, facultyId, detectCheating, playPopSound, scheduleFlush])
+
+  const closeCaptcha = useCallback(
+    ({ solved } = { solved: true }) => {
+      setCaptchaOpen(false)
+      if (solved) {
+        const now = Date.now()
+        firstPopAtRef.current = now
+        captchaDeadlineRef.current = now + POP_CAPTCHA_AFTER_MS
+      } else {
+        // If Turnstile failed to load, don't trap the user — push the deadline
+        // forward one window so they aren't re-prompted immediately.
+        captchaDeadlineRef.current = Date.now() + POP_CAPTCHA_AFTER_MS
+      }
+      clickTimes.current = []
+    },
+    [],
+  )
 
   const closeError = useCallback(() => {
     setErrOpen(false)
@@ -662,6 +698,13 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
       {errOpen && <ErrorDialog onOk={closeError} />}
       {readyOpen && <ReadyDialog onClose={() => setReadyOpen(false)} />}
+      {captchaOpen && (
+        <CaptchaGate
+          siteKey={TURNSTILE_SITE_KEY}
+          onSolve={() => closeCaptcha({ solved: true })}
+          onSkip={() => closeCaptcha({ solved: false })}
+        />
+      )}
       {allFacultiesOpen && (
         <AllFacultiesDialog rows={allFacultyRows} onClose={() => setAllFacultiesOpen(false)} />
       )}
