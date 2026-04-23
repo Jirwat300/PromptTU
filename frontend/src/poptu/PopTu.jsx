@@ -55,6 +55,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [readyOpen, setReadyOpen] = useState(false)
   const [allFacultiesOpen, setAllFacultiesOpen] = useState(false)
   const [captchaOpen, setCaptchaOpen] = useState(false)
+  // Fatal captcha-block: set when we conclude the client genuinely can't pass
+  // Turnstile (invisible widget keeps returning null, or server enforces a
+  // captcha-related 403, or the visible gate hits its error state). While it's
+  // on we freeze all clicks/flushes and show a kick-out dialog; OK navigates
+  // out of the game.
+  const [captchaBlocked, setCaptchaBlocked] = useState(false)
+  const captchaFailStreakRef = useRef(0)
+  const CAPTCHA_MAX_FAIL_STREAK = 3
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
   const lizardPopAnchorRef = useRef(null)
@@ -282,6 +290,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
   const flushPending = useCallback(async () => {
     if (flushInFlightRef.current) return
+    if (captchaBlocked) return
     if (!facultyId) return
     const queuedDelta = pendingDeltaRef.current
     if (queuedDelta <= 0) return
@@ -300,6 +309,28 @@ export default function PopTu({ onNavigateToComingSoon }) {
       const turnstileToken = TURNSTILE_SITE_KEY
         ? await createTurnstileToken(TURNSTILE_SITE_KEY)
         : null
+      // Track consecutive invisible-widget failures. Cloudflare blocks on
+      // Brave-strict / uBlock / DNS-blocked networks will loop forever
+      // otherwise. After CAPTCHA_MAX_FAIL_STREAK we stop trying and kick
+      // the user out of POPTU.
+      if (TURNSTILE_SITE_KEY) {
+        if (!turnstileToken) {
+          captchaFailStreakRef.current += 1
+          if (captchaFailStreakRef.current >= CAPTCHA_MAX_FAIL_STREAK) {
+            optimisticRef.current[facultyId] = Math.max(
+              (optimisticRef.current[facultyId] ?? 0) - delta,
+              0,
+            )
+            pendingDeltaRef.current = 0
+            pendingFirstClickMsRef.current = 0
+            pendingLastClickMsRef.current = 0
+            setCaptchaBlocked(true)
+            return
+          }
+        } else {
+          captchaFailStreakRef.current = 0
+        }
+      }
       const sessionToken = await ensureSessionToken()
       const res = await fetch(`${API_BASE}/api/ranking/pop`, {
         method: 'POST',
@@ -337,13 +368,27 @@ export default function PopTu({ onNavigateToComingSoon }) {
           })
         }
       } else {
-        if (res.status === 403 && String(json?.message || '').includes('session')) {
+        const msg = String(json?.message || '').toLowerCase()
+        // Server rejected the request because captcha enforcement failed —
+        // no amount of retry will fix that, so kick the user out rather
+        // than spin an infinite retry loop that also re-bills Upstash.
+        if (res.status === 403 && msg.includes('captcha')) {
+          optimisticRef.current[facultyId] = Math.max(
+            (optimisticRef.current[facultyId] ?? 0) - delta,
+            0,
+          )
+          pendingDeltaRef.current = 0
+          pendingFirstClickMsRef.current = 0
+          pendingLastClickMsRef.current = 0
+          setCaptchaBlocked(true)
+          return
+        }
+        if (res.status === 403 && msg.includes('session')) {
           sessionTokenRef.current = null
           sessionTokenExpRef.current = 0
           void fetchSessionToken()
         }
-        const isTooFastReject =
-          res.status === 429 && String(json?.message || '').toLowerCase().includes('too fast')
+        const isTooFastReject = res.status === 429 && msg.includes('too fast')
         optimisticRef.current[facultyId] = Math.max(
           (optimisticRef.current[facultyId] ?? 0) - delta,
           0,
@@ -373,7 +418,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
         }, POP_FLUSH_MS)
       }
     }
-  }, [ensureSessionToken, facultyId, fetchScores, fetchSessionToken])
+  }, [captchaBlocked, ensureSessionToken, facultyId, fetchScores, fetchSessionToken])
 
   const scheduleFlush = useCallback(() => {
     if (flushTimerRef.current) return
@@ -451,7 +496,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [])
 
   const onLizardClick = useCallback(() => {
-    if (caught || errOpen || readyOpen || captchaOpen || !facultyId) return
+    if (caught || errOpen || readyOpen || captchaOpen || captchaBlocked || !facultyId) return
     const now = Date.now()
 
     // Start / check the "prove you're human" timer. First click arms it; after
@@ -499,7 +544,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
       return next.length > MAX_FLOATERS ? next.slice(-MAX_FLOATERS) : next
     })
     setTimeout(() => setFloaters((fs) => fs.filter((f) => f.id !== fid)), 700)
-  }, [caught, errOpen, readyOpen, captchaOpen, facultyId, detectCheating, playPopSound, scheduleFlush])
+  }, [caught, errOpen, readyOpen, captchaOpen, captchaBlocked, facultyId, detectCheating, playPopSound, scheduleFlush])
 
   const closeCaptcha = useCallback(
     ({ solved } = { solved: true }) => {
@@ -508,12 +553,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
         const now = Date.now()
         firstPopAtRef.current = now
         captchaDeadlineRef.current = now + POP_CAPTCHA_AFTER_MS
+        captchaFailStreakRef.current = 0
+        clickTimes.current = []
       } else {
-        // If Turnstile failed to load, don't trap the user — push the deadline
-        // forward one window so they aren't re-prompted immediately.
-        captchaDeadlineRef.current = Date.now() + POP_CAPTCHA_AFTER_MS
+        // Visible gate dismissed without a token (script failed / user closed /
+        // Turnstile hostname mismatch). Treat as a captcha failure and route
+        // to the kick-out dialog — product decision: no opt-out loophole.
+        setCaptchaBlocked(true)
       }
-      clickTimes.current = []
     },
     [],
   )
@@ -529,6 +576,21 @@ export default function PopTu({ onNavigateToComingSoon }) {
     window.location.hash = '#comingsoon'
     onNavigateToComingSoon?.()
   }, [flushPending, onNavigateToComingSoon])
+
+  const exitAfterCaptchaBlock = useCallback(() => {
+    // Drop anything still queued so we don't re-bill Upstash once the user
+    // bounces back — nothing we queued after the block was persisted anyway.
+    pendingDeltaRef.current = 0
+    pendingFirstClickMsRef.current = 0
+    pendingLastClickMsRef.current = 0
+    if (flushTimerRef.current) {
+      clearTimeout(flushTimerRef.current)
+      flushTimerRef.current = null
+    }
+    setCaptchaBlocked(false)
+    window.location.hash = '#comingsoon'
+    onNavigateToComingSoon?.()
+  }, [onNavigateToComingSoon])
 
   const myCount = facultyId ? sessionClicks : 0
 
@@ -698,11 +760,19 @@ export default function PopTu({ onNavigateToComingSoon }) {
 
       {errOpen && <ErrorDialog onOk={closeError} />}
       {readyOpen && <ReadyDialog onClose={() => setReadyOpen(false)} />}
-      {captchaOpen && (
+      {captchaOpen && !captchaBlocked && (
         <CaptchaGate
           siteKey={TURNSTILE_SITE_KEY}
           onSolve={() => closeCaptcha({ solved: true })}
           onSkip={() => closeCaptcha({ solved: false })}
+        />
+      )}
+      {captchaBlocked && (
+        <ErrorDialog
+          title="ตรวจสอบไม่ผ่าน"
+          message="ระบบตรวจสอบ CAPTCHA ไม่ผ่าน — ออกจากเกม"
+          okLabel="ออก"
+          onOk={exitAfterCaptchaBlock}
         />
       )}
       {allFacultiesOpen && (
