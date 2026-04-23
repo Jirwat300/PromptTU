@@ -55,14 +55,13 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [readyOpen, setReadyOpen] = useState(false)
   const [allFacultiesOpen, setAllFacultiesOpen] = useState(false)
   const [captchaOpen, setCaptchaOpen] = useState(false)
-  // Fatal captcha-block: set when we conclude the client genuinely can't pass
-  // Turnstile (invisible widget keeps returning null, or server enforces a
-  // captcha-related 403, or the visible gate hits its error state). While it's
-  // on we freeze all clicks/flushes and show a kick-out dialog; OK navigates
-  // out of the game.
+  // Fatal captcha-block: set only when the server itself rejects a pop with a
+  // captcha-related 403 (i.e. TURNSTILE_MODE=enforce on the backend and the
+  // token didn't verify). Client-side token fetch failures no longer flip
+  // this flag — they're almost always ad-blockers/Brave/DNS issues outside
+  // the user's control, and monitoring-mode servers accept those requests
+  // anyway.
   const [captchaBlocked, setCaptchaBlocked] = useState(false)
-  const captchaFailStreakRef = useRef(0)
-  const CAPTCHA_MAX_FAIL_STREAK = 3
   const [floaters, setFloaters] = useState([])
   const [popAnim, setPopAnim] = useState(0)
   const lizardPopAnchorRef = useRef(null)
@@ -306,31 +305,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
     optimisticRef.current[facultyId] = (optimisticRef.current[facultyId] ?? 0) + delta
 
     try {
+      // Best-effort token generation. If Cloudflare can't be reached
+      // (adblock / Brave strict / hostname misconfig), we still POST so the
+      // server gets a chance to decide based on TURNSTILE_MODE. The server
+      // is the authority: if it's running in `monitor`, missing tokens go
+      // through; if it's `enforce`, the 403 branch below triggers kick-out.
       const turnstileToken = TURNSTILE_SITE_KEY
         ? await createTurnstileToken(TURNSTILE_SITE_KEY)
         : null
-      // Track consecutive invisible-widget failures. Cloudflare blocks on
-      // Brave-strict / uBlock / DNS-blocked networks will loop forever
-      // otherwise. After CAPTCHA_MAX_FAIL_STREAK we stop trying and kick
-      // the user out of POPTU.
-      if (TURNSTILE_SITE_KEY) {
-        if (!turnstileToken) {
-          captchaFailStreakRef.current += 1
-          if (captchaFailStreakRef.current >= CAPTCHA_MAX_FAIL_STREAK) {
-            optimisticRef.current[facultyId] = Math.max(
-              (optimisticRef.current[facultyId] ?? 0) - delta,
-              0,
-            )
-            pendingDeltaRef.current = 0
-            pendingFirstClickMsRef.current = 0
-            pendingLastClickMsRef.current = 0
-            setCaptchaBlocked(true)
-            return
-          }
-        } else {
-          captchaFailStreakRef.current = 0
-        }
-      }
       const sessionToken = await ensureSessionToken()
       const res = await fetch(`${API_BASE}/api/ranking/pop`, {
         method: 'POST',
@@ -549,18 +531,14 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const closeCaptcha = useCallback(
     ({ solved } = { solved: true }) => {
       setCaptchaOpen(false)
-      if (solved) {
-        const now = Date.now()
-        firstPopAtRef.current = now
-        captchaDeadlineRef.current = now + POP_CAPTCHA_AFTER_MS
-        captchaFailStreakRef.current = 0
-        clickTimes.current = []
-      } else {
-        // Visible gate dismissed without a token (script failed / user closed /
-        // Turnstile hostname mismatch). Treat as a captcha failure and route
-        // to the kick-out dialog — product decision: no opt-out loophole.
-        setCaptchaBlocked(true)
-      }
+      const now = Date.now()
+      firstPopAtRef.current = now
+      captchaDeadlineRef.current = now + POP_CAPTCHA_AFTER_MS
+      clickTimes.current = []
+      // If Turnstile script failed to load (ad-blocker / network block), let
+      // the user keep playing. The server will still enforce in `enforce`
+      // mode via 403 if one sneaks through; otherwise we don't want to
+      // lock legit users out for something outside their control.
     },
     [],
   )
