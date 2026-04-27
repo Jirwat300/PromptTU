@@ -20,6 +20,7 @@ import {
   MAX_CLICK_BUFFER,
   MAX_FLOATERS,
   POP_CAPTCHA_AFTER_MS,
+  POP_EVENT_END_AT_MS,
   POP_FLUSH_MS,
   RANKING_REFRESH_HIDDEN_MS,
   RANKING_REFRESH_MS,
@@ -54,6 +55,9 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const [errOpen, setErrOpen] = useState(false)
   const [readyOpen, setReadyOpen] = useState(false)
   const [allFacultiesOpen, setAllFacultiesOpen] = useState(false)
+  const [activityEnded, setActivityEnded] = useState(
+    Number.isFinite(POP_EVENT_END_AT_MS) ? Date.now() >= POP_EVENT_END_AT_MS : false,
+  )
   const [captchaOpen, setCaptchaOpen] = useState(false)
   // Fatal captcha-block: set only when the server itself rejects a pop with a
   // captcha-related 403 (i.e. TURNSTILE_MODE=enforce on the backend and the
@@ -101,6 +105,18 @@ export default function PopTu({ onNavigateToComingSoon }) {
     document.body.classList.add('poptu-active')
     return () => document.body.classList.remove('poptu-active')
   }, [])
+
+  useEffect(() => {
+    if (activityEnded) return
+    if (!Number.isFinite(POP_EVENT_END_AT_MS)) return
+    const msLeft = POP_EVENT_END_AT_MS - Date.now()
+    if (msLeft <= 0) {
+      setActivityEnded(true)
+      return
+    }
+    const t = window.setTimeout(() => setActivityEnded(true), msLeft + 200)
+    return () => clearTimeout(t)
+  }, [activityEnded])
 
   const ensurePopAudio = useCallback(() => {
     if (typeof window === 'undefined') return null
@@ -290,6 +306,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   const flushPending = useCallback(async () => {
     if (flushInFlightRef.current) return
     if (captchaBlocked) return
+    if (activityEnded) return
     if (!facultyId) return
     const queuedDelta = pendingDeltaRef.current
     if (queuedDelta <= 0) return
@@ -365,6 +382,17 @@ export default function PopTu({ onNavigateToComingSoon }) {
           setCaptchaBlocked(true)
           return
         }
+        if (res.status === 403 && msg.includes('activity ended')) {
+          optimisticRef.current[facultyId] = Math.max(
+            (optimisticRef.current[facultyId] ?? 0) - delta,
+            0,
+          )
+          pendingDeltaRef.current = 0
+          pendingFirstClickMsRef.current = 0
+          pendingLastClickMsRef.current = 0
+          setActivityEnded(true)
+          return
+        }
         if (res.status === 403 && msg.includes('session')) {
           sessionTokenRef.current = null
           sessionTokenExpRef.current = 0
@@ -400,7 +428,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
         }, POP_FLUSH_MS)
       }
     }
-  }, [captchaBlocked, ensureSessionToken, facultyId, fetchScores, fetchSessionToken])
+  }, [activityEnded, captchaBlocked, ensureSessionToken, facultyId, fetchScores, fetchSessionToken])
 
   const scheduleFlush = useCallback(() => {
     if (flushTimerRef.current) return
@@ -478,7 +506,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [])
 
   const onLizardClick = useCallback(() => {
-    if (caught || errOpen || readyOpen || captchaOpen || captchaBlocked || !facultyId) return
+    if (activityEnded || caught || errOpen || readyOpen || captchaOpen || captchaBlocked || !facultyId) return
     const now = Date.now()
 
     // Start / check the "prove you're human" timer. First click arms it; after
@@ -526,7 +554,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
       return next.length > MAX_FLOATERS ? next.slice(-MAX_FLOATERS) : next
     })
     setTimeout(() => setFloaters((fs) => fs.filter((f) => f.id !== fid)), 700)
-  }, [caught, errOpen, readyOpen, captchaOpen, captchaBlocked, facultyId, detectCheating, playPopSound, scheduleFlush])
+  }, [activityEnded, caught, errOpen, readyOpen, captchaOpen, captchaBlocked, facultyId, detectCheating, playPopSound, scheduleFlush])
 
   const closeCaptcha = useCallback(
     ({ solved } = { solved: true }) => {
@@ -589,6 +617,7 @@ export default function PopTu({ onNavigateToComingSoon }) {
   }, [scores, facultyMetaFromApi])
 
   const rankings = useMemo(() => allFacultyRows.slice(0, 3), [allFacultyRows])
+  const winner = allFacultyRows[0] || null
   const currentFaculty = FACULTIES.find((f) => f.id === facultyId)
 
   return (
@@ -751,6 +780,18 @@ export default function PopTu({ onNavigateToComingSoon }) {
           message="ระบบตรวจสอบ CAPTCHA ไม่ผ่าน — ออกจากเกม"
           okLabel="ออก"
           onOk={exitAfterCaptchaBlock}
+        />
+      )}
+      {activityEnded && (
+        <ErrorDialog
+          title="กิจกรรมสิ้นสุดแล้ว"
+          message={
+            winner
+              ? `กิจกรรมสิ้นสุดแล้ว — ผู้ชนะ: ${winner.emoji || ''} ${winner.name} (${winner.score.toLocaleString('en-US')} POP)`
+              : 'กิจกรรมสิ้นสุดแล้ว'
+          }
+          okLabel="ดูผล"
+          onOk={goHome}
         />
       )}
       {allFacultiesOpen && (

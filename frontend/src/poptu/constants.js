@@ -40,4 +40,9 @@ function resolveCaptchaAfterMs() {
 }
 export const POP_CAPTCHA_AFTER_MS = resolveCaptchaAfterMs()
 
+// One-off event close time (generated from "now + 53 minutes" when requested).
+// Frontend uses this to freeze gameplay UI and announce the winner.
+export const POP_EVENT_END_AT_ISO = '2026-04-27T16:58:18.000Z'
+export const POP_EVENT_END_AT_MS = Date.parse(POP_EVENT_END_AT_ISO)
+
 export const WIN_DECO_BTN = { disabled: true, title: 'ตกแต่ง (ยังไม่ใช้งาน)' }

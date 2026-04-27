@@ -46,6 +46,9 @@ const POPTU_FACULTY_IDS = new Set(POPTU_FACULTIES.map((f) => f.id));
 const SCORES_CACHE_TTL_MS = 5000;
 const SCORES_FLUSH_INTERVAL_MS = 30_000;
 const POP_FLUSH_HINT_MS = 30_000;
+// One-off event close time (generated from "now + 53 minutes" when requested).
+const POP_EVENT_END_AT_ISO = '2026-04-27T16:58:18.000Z';
+const POP_EVENT_END_AT_MS = Date.parse(POP_EVENT_END_AT_ISO);
 let lastScoresFlushAttemptMs = 0;
 let lastPopFlushHintMs = 0;
 let scoresCache = { at: 0, payload: null };
@@ -214,6 +217,10 @@ function invalidateScoresCache() {
   scoresCache = { at: 0, payload: null };
 }
 
+function isPopActivityEnded(nowMs = Date.now()) {
+  return Number.isFinite(POP_EVENT_END_AT_MS) && nowMs >= POP_EVENT_END_AT_MS;
+}
+
 /**
  * Validate client click timing stats from the batch payload.
  * Returns null when payload is missing/insufficient, or a verdict when available.
@@ -268,6 +275,8 @@ app.get('/api/health', async (req, res) => {
       scores_cache_ttl_ms: SCORES_CACHE_TTL_MS,
       scores_flush_interval_ms: SCORES_FLUSH_INTERVAL_MS,
       pop_flush_hint_ms: POP_FLUSH_HINT_MS,
+      pop_event_end_at: POP_EVENT_END_AT_ISO,
+      pop_event_ended: isPopActivityEnded(),
       client_rate_mode: getClientRateMode(),
       client_cps_max: getClientCpsMax(),
       cors_enforce: corsEnforce,
@@ -583,6 +592,9 @@ app.get('/api/ranking/session', async (req, res) => {
 
 app.post('/api/ranking/pop', async (req, res) => {
   try {
+    if (isPopActivityEnded()) {
+      return res.status(403).json({ status: 'error', message: 'activity ended' });
+    }
     const { faculty_id, delta } = req.body || {};
     const d = Math.floor(Number(delta));
 
