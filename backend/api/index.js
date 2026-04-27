@@ -151,13 +151,14 @@ function getClientRateMinSamples() {
 // then redeploy — no code change required.
 function getFrozenFaculties() {
   const raw = (process.env.POP_FROZEN_FACULTIES || '').trim();
-  if (!raw) return new Set();
-  return new Set(
-    raw
+  const configured = raw
+    ? raw
       .split(',')
       .map((s) => s.trim().toLowerCase())
-      .filter(Boolean),
-  );
+      .filter(Boolean)
+    : [];
+  // Product rule: keep MED hard-frozen regardless of env typo/removal.
+  return new Set(['med', ...configured]);
 }
 
 const ANALYTICS_EVENT_TYPE_RE = /^[a-z0-9][a-z0-9_.:-]{0,63}$/i;
@@ -508,10 +509,16 @@ app.get('/api/ranking/scores', async (req, res) => {
     }
 
     const pending = await getPendingMap();
-    const mergedRows = (data || []).map((r) => ({
-      ...r,
-      count: (Number(r.count) || 0) + (pending[r.id] || 0),
-    }));
+    const mergedRows = (data || []).map((r) => {
+      const id = String(r.id || '').toLowerCase();
+      if (id === 'med') {
+        return { ...r, count: 0 };
+      }
+      return {
+        ...r,
+        count: (Number(r.count) || 0) + (pending[r.id] || 0),
+      };
+    });
 
     const scores = {};
     for (const row of mergedRows) scores[row.id] = Number(row.count) || 0;
